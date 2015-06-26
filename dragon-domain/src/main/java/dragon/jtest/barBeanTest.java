@@ -41,7 +41,7 @@ public class barBeanTest {
 
     @Test
     public void testPickRestaurant()  {
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 5; i++) {
             Restaurant r = f.pickRestaurant();
 
             Record rec = new Record();
@@ -68,7 +68,7 @@ public class barBeanTest {
         try {
             conn = DbHelper.getConn();
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 30");
+            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 5");
 
             while (rs.next()) {
                 Long id = rs.getLong(1);
