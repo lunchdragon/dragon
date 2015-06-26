@@ -28,12 +28,11 @@
         <module name="dragon-web" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="dragon" target="1.5" />
-      <module name="dragon-common" target="1.5" />
-      <module name="dragon-domain" target="1.5" />
-      <module name="dragon-ear" target="1.5" />
-      <module name="dragon-web" target="1.5" />
+    <bytecodeTargetLevel target="1.7">
+      <module name="dragon-common" target="1.7" />
+      <module name="dragon-domain" target="1.7" />
+      <module name="dragon-ear" target="1.7" />
+      <module name="dragon-web" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>
