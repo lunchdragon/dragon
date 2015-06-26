@@ -2,76 +2,66 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3f830f50-bff3-42b6-b466-cc0ea32cd5d6" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/logs/dragon.log" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\alert\Alert.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\alert\AlertData.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$Dfs.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$FSNamesystem.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$Jvm.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$Metrics.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$Namenode.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$Rpc.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$Rpcdetailed.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode$ServiceComponentInfo.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hdfs\NameNode.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Cpu.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\DesiredConfigs.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Disk.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\DiskInfo.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\EtcAlternativesConf.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\HostComponent.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\HostData.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\HostRoles.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Hosts.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\JavaProc.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Jvm.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\LastAgentEnv.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Load.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Memory.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Metrics.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Network.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Path.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Process.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Rpc.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Rpcdetailed.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Rpm.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\host\Ugi.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\DesiredConfigs.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\DiskInfo.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\HostComponent.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\HostRoles.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\Hosts.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\HostsData.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\LastAgentEnv.class" afterPath="" />
-      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\dragon-domain\target\classes\dragon\model\hosts\Metrics.class" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-common/target/classes/dragon/comm/EasyHttpClient.class" afterPath="$PROJECT_DIR$/dragon-common/target/classes/dragon/comm/EasyHttpClient.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-web/target/classes/servlet/InitServlet.class" afterPath="$PROJECT_DIR$/dragon-web/target/classes/servlet/InitServlet.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-common/target/classes/dragon/comm/MailSender.class" afterPath="$PROJECT_DIR$/dragon-common/target/classes/dragon/comm/MailSender.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-domain/target/classes/dragon/service/barBean.class" afterPath="$PROJECT_DIR$/dragon-domain/target/classes/dragon/service/barBean.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-common/target/dragon-common-1.0.jar" afterPath="$PROJECT_DIR$/dragon-common/target/dragon-common-1.0.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/lib/dragon-common-1.0.jar" afterPath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/lib/dragon-common-1.0.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-domain/target/dragon-domain-1.0.jar" afterPath="$PROJECT_DIR$/dragon-domain/target/dragon-domain-1.0.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/dragon-domain-1.0.jar" afterPath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/dragon-domain-1.0.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0.ear" afterPath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0.ear" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-web/target/dragon-web-1.0.war" afterPath="$PROJECT_DIR$/dragon-web/target/dragon-web-1.0.war" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-web/target/classes/rest/dragonRest.class" afterPath="$PROJECT_DIR$/dragon-web/target/classes/rest/dragonRest.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-web/target/classes/rest/eatRest$1.class" afterPath="$PROJECT_DIR$/dragon-web/target/classes/rest/eatRest$1.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-web/target/classes/rest/eatRest.class" afterPath="$PROJECT_DIR$/dragon-web/target/classes/rest/eatRest.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/web-1.0.war" afterPath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/web-1.0.war" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-ear/target/application.xml" afterPath="$PROJECT_DIR$/dragon-ear/target/application.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/META-INF/application.xml" afterPath="$PROJECT_DIR$/dragon-ear/target/dragon-ear-1.0/META-INF/application.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/compiler.xml" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-common/dragon-common.iml" afterPath="$PROJECT_DIR$/dragon-common/dragon-common.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-domain/dragon-domain.iml" afterPath="$PROJECT_DIR$/dragon-domain/dragon-domain.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-ear/dragon-ear.iml" afterPath="$PROJECT_DIR$/dragon-ear/dragon-ear.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-web/dragon-web.iml" afterPath="$PROJECT_DIR$/dragon-web/dragon-web.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon.iml" afterPath="$PROJECT_DIR$/dragon.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-common/target/maven-archiver/pom.properties" afterPath="$PROJECT_DIR$/dragon-common/target/maven-archiver/pom.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-domain/target/maven-archiver/pom.properties" afterPath="$PROJECT_DIR$/dragon-domain/target/maven-archiver/pom.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dragon-web/target/maven-archiver/pom.properties" afterPath="$PROJECT_DIR$/dragon-web/target/maven-archiver/pom.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\.name" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\compiler.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\copyright\profiles_settings.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\encodings.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__asm_asm_3_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__c3p0_c3p0_0_9_1_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__com_google_code_gson_gson_2_3_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__com_sun_jersey_jersey_core_1_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__com_sun_jersey_jersey_server_1_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__commons_codec_commons_codec_1_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__commons_dbcp_commons_dbcp_1_2_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__commons_httpclient_commons_httpclient_3_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__commons_lang_commons_lang_2_4.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__commons_logging_commons_logging_1_0_4.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__commons_logging_commons_logging_1_1_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__commons_pool_commons_pool_1_3.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_activation_activation_1_1_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_annotation_jsr250_api_1_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_ejb_ejb_api_3_0_alpha_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_enterprise_deploy_deployment_api_1_2_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_faces_jsf_api_1_2_08.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_javaee_javaee_6_0_alpha_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_jms_jms_api_1_1_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_jws_jsr181_api_1_0_MR1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_management_j2ee_management_api_1_1_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_persistence_persistence_api_1_0_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_resource_connector_api_1_6_alpha_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_security_security_api_1_1_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_servlet_jsp_jsp_api_2_1_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_servlet_jsp_jstl_jstl_api_1_2_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_servlet_servlet_api_3_0_alpha_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_transaction_jta_1_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_transaction_transaction_api_1_1_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_ws_rs_jsr311_api_1_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_xml_bind_jaxb_api_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_xml_jaxrpc_api_1_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_xml_soap_saaj_api_1_3.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_xml_stream_stax_api_1_0_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__javax_xml_ws_jaxws_api_2_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__jline_jline_0_9_94.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__junit_junit_4_4.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__log4j_log4j_1_2_17.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__net_sf_opencsv_opencsv_2_3.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_apache_ant_ant_1_7_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_apache_ant_ant_launcher_1_7_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_apache_ivy_ivy_2_0_0_rc1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_codehaus_groovy_groovy_all_1_6_beta_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_glassfish_api_mail_1_4_rev_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_quartz_scheduler_quartz_2_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_quartz_scheduler_quartz_jobs_2_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_slf4j_slf4j_api_1_6_6.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_slf4j_slf4j_log4j12_1_7_5.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__org_springframework_spring_2_5_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\libraries\Maven__postgresql_postgresql_9_1_901_1_jdbc4.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\misc.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\modules.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\scopes\scope_settings.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\uiDesigner.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\vcs.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\Documents\GitHub\dragon\.idea\workspace.xml" afterPath="" />
     </list>
     <ignored path="dragon.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -145,7 +135,7 @@
       <file leaf-file-name="eatRest.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dragon-web/src/main/java/rest/eatRest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1919" max-vertical-offset="2432">
+            <state vertical-scroll-proportion="0.0" vertical-offset="1919" max-vertical-offset="2394">
               <caret line="108" column="0" selection-start-line="108" selection-start-column="0" selection-end-line="108" selection-end-column="0" />
               <folding />
             </state>
@@ -175,12 +165,10 @@
       <file leaf-file-name="barBeanTest.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dragon-domain/src/main/java/dragon/jtest/barBeanTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.500673" vertical-offset="3057" max-vertical-offset="4522">
+            <state vertical-scroll-proportion="-3.500673" vertical-offset="3057" max-vertical-offset="4446">
               <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#6184#6308#0" expanded="true" />
-                <element signature="e#6307#6308#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -288,26 +276,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dragon" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dragon" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dragon" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
       <pane id="PackagesPane">
         <subPane>
           <PATH>
@@ -324,6 +292,26 @@
             <PATH_ELEMENT>
               <option name="myItemId" value="dragon-domain" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dragon" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dragon" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dragon" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -828,7 +816,6 @@
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32866243" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -843,6 +830,7 @@
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32866243" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32866243" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -950,8 +938,6 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#6184#6308#0" expanded="true" />
-            <element signature="e#6307#6308#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1028,8 +1014,6 @@
           <caret line="15" column="17" selection-start-line="15" selection-start-column="17" selection-end-line="15" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#6184#6308#0" expanded="true" />
-            <element signature="e#6307#6308#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1060,7 +1044,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
           <caret line="17" column="28" selection-start-line="17" selection-start-column="28" selection-end-line="17" selection-end-column="28" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1289,12 +1272,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dragon-domain/src/main/java/dragon/jtest/barBeanTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.500673" vertical-offset="3057" max-vertical-offset="4484">
+        <state vertical-scroll-proportion="-3.500673" vertical-offset="3057" max-vertical-offset="4446">
           <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#6184#6308#0" expanded="true" />
-            <element signature="e#6307#6308#0" expanded="true" />
           </folding>
         </state>
       </provider>
