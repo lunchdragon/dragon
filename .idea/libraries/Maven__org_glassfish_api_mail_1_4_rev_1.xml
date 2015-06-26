@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.glassfish.api:mail:1.4-rev-1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/api/mail/1.4-rev-1/mail-1.4-rev-1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/api/mail/1.4-rev-1/mail-1.4-rev-1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/api/mail/1.4-rev-1/mail-1.4-rev-1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

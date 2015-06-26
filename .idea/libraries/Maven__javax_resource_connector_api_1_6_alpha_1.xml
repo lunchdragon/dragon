@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: javax.resource:connector-api:1.6-alpha-1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/javax/resource/connector-api/1.6-alpha-1/connector-api-1.6-alpha-1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/javax/resource/connector-api/1.6-alpha-1/connector-api-1.6-alpha-1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/javax/resource/connector-api/1.6-alpha-1/connector-api-1.6-alpha-1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

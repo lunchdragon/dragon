@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: javax.enterprise.deploy:deployment-api:1.2-rev-1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/javax/enterprise/deploy/deployment-api/1.2-rev-1/deployment-api-1.2-rev-1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/javax/enterprise/deploy/deployment-api/1.2-rev-1/deployment-api-1.2-rev-1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/javax/enterprise/deploy/deployment-api/1.2-rev-1/deployment-api-1.2-rev-1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
