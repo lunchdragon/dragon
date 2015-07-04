@@ -1,4 +1,11 @@
 server=192.168.65.156
+port=8080
+
 db=ambari
 dbuser=ambari
 dbpwd=ambari
+
+mail=smtpx16.msoutlookonline.net
+mailport=25
+mailuser=notify@accelops.com
+mailpwd=en.mailpwd

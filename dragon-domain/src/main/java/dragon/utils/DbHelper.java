@@ -1,12 +1,9 @@
-package dragon.db;
+package dragon.utils;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import dragon.comm.ConfigHelper;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -22,8 +19,8 @@ public class DbHelper {
 
     private static ComboPooledDataSource ds = null;
     private static Connection sc = null;
-    private static Object lock = new Object();
-    private static Object lock2 = new Object();
+    private static final Object lock = new Object();
+    private static final Object lock2 = new Object();
 
     public static ComboPooledDataSource getDs(){
         if(ds == null){
@@ -76,12 +73,12 @@ public class DbHelper {
                 logger.debug("Closed :" + conn);
                 conn.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("", e);
             }
         }
     }
 
-    public static Object runWithSingleResult(String sql, Connection conn){
+    public static <T> T runWithSingleResult(String sql, Connection conn){
         boolean reuse = conn != null;//Remember to close connection outside
         try {
             if(!reuse){
@@ -90,7 +87,7 @@ public class DbHelper {
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(sql);
             if(rs.next()){
-                return rs.getObject(1);
+                return (T) rs.getObject(1);
             }
         } catch (Exception e){
             logger.error("", e);

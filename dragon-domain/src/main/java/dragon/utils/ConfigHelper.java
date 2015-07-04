@@ -1,23 +1,27 @@
-package dragon.comm;
+package dragon.utils;
+
+import dragon.service.Eat;
+import dragon.service.EatBean;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by lin.cheng on 6/18/15.
  */
 public class ConfigHelper {
     static final String PATH = "/opt/dragon/config.txt";
+    static final String EN_PF = "en.";
     static final Map<String, String> map = new HashMap<String, String>();
 
     private static ConfigHelper instance;
-    private static Object lock = new Object();
+    private static final Object lock = new Object();
+    static Log logger = LogFactory.getLog(ConfigHelper.class);
 
     private ConfigHelper() {
     }
@@ -31,6 +35,7 @@ public class ConfigHelper {
                 try {
                     BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(PATH)));
                     String line = null;
+                    Eat t = new EatBean();
                     while ((line = bufferedReader.readLine()) != null) {
                         line = line.trim();
                         if (line.length() == 0) {
@@ -38,20 +43,25 @@ public class ConfigHelper {
                         }
 
                         String[] property;
+                        String value = null;
                         int index = line.indexOf("=");
                         if (index > 0) {
                             property = new String[2];
                             property[0] = line.substring(0, index).trim();
-                            property[1] = line.substring(index + 1).trim();
+                            value = line.substring(index + 1).trim();
+
+                            if(value.startsWith(EN_PF)){
+                                value = t.getSecret(value);
+                            }
                         } else {
                             property = null;
                         }
                         if (property != null) {
-                            map.put(property[0], property[1]);
+                            map.put(property[0] ,value);
                         }
                     }
                 } catch (Exception e) {
-                    Logger.getLogger("ConfigHelper").log(Level.SEVERE, e.getMessage());
+                    logger.error("", e);
                 }
             }
         }

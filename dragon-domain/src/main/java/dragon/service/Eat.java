@@ -11,7 +11,7 @@ import java.util.Map;
  * Created by lin.cheng on 6/1/15.
  */
 @Local
-public interface bar {
+public interface Eat {
     Restaurant pickRestaurant();
     List<Restaurant> getRestaurants();
     Long saveRestaurant(Restaurant r, Connection conn);
@@ -22,4 +22,6 @@ public interface bar {
     void sendLunchEmail(String reason);
     Map<String, Stat> stat();
     Long saveRecord(Record r);
+    String saveSecret(String key, String value);
+    String getSecret(String key);
 }

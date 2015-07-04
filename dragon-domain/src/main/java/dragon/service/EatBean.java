@@ -1,16 +1,19 @@
 package dragon.service;
 
-import dragon.comm.ConfigHelper;
-import dragon.comm.MailSender;
+import dragon.utils.ConfigHelper;
 import dragon.comm.Utils;
-import dragon.db.DbHelper;
+import dragon.comm.crypto.CryptoALG;
+import dragon.comm.crypto.CryptoUtils;
+import dragon.utils.DbHelper;
+import dragon.utils.QueueHelper;
 import dragon.model.food.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import javax.crypto.SecretKey;
 import javax.ejb.Stateless;
-import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -20,9 +23,10 @@ import java.util.*;
  * Created by lin.cheng on 6/1/15.
  */
 @Stateless
-public class barBean implements bar {
+public class EatBean implements Eat {
 
-    static Log logger = LogFactory.getLog(barBean.class);
+    static Log logger = LogFactory.getLog(EatBean.class);
+    static final String KEY = "KEY";
 
     public int importRestaurants(String csv) {
         List<String[]> data = new ArrayList<String[]>();
@@ -36,7 +40,7 @@ public class barBean implements bar {
                 Restaurant r = new Restaurant(item[0], item[1], Integer.parseInt(item[2]), Integer.parseInt(item[3]));
                 saveRestaurant(r, conn);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("", e);
         } finally {
             DbHelper.closeConn(conn);
@@ -52,8 +56,8 @@ public class barBean implements bar {
         boolean reuse = conn != null;//Remember to close connection outside
         Long id = 0L;
 
-        try{
-            if(!reuse){
+        try {
+            if (!reuse) {
                 conn = DbHelper.getConn();
             }
             conn.setAutoCommit(false);
@@ -63,10 +67,9 @@ public class barBean implements bar {
 
             logger.debug("Locked: " + Thread.currentThread().getId());
 
-            Object obj = DbHelper.runWithSingleResult("select id from dragon_restaurant where name ='" + key + "'", conn);
+            id = DbHelper.runWithSingleResult("select id from dragon_restaurant where name ='" + key + "'", conn);
 
-            if (obj != null) {
-                id = (Long) obj;
+            if (id != null) {
                 DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s', factor=%s,score=%s where name='%s'",
                         r.getLink(), r.getFactor(), r.getScore(), key);
 
@@ -83,10 +86,10 @@ public class barBean implements bar {
 
             logger.debug("Commit and unlock: " + Thread.currentThread().getId());
 
-        } catch(Exception e){
+        } catch (Exception e) {
             logger.error("", e);
         } finally {
-            if(!reuse){
+            if (!reuse) {
                 DbHelper.closeConn(conn);
             }
         }
@@ -101,11 +104,7 @@ public class barBean implements bar {
         int cnt = DbHelper.runUpdate(null, "update dragon_user set subscribed=%s, name='%s' where email='%s'",
                 u.getSubscribed(), u.getName(), key);
 
-        Long id = 0L;
-        Object obj = DbHelper.runWithSingleResult("select id from dragon_user where email ='" + key + "'", null);
-        if (obj != null) {
-            id = (Long) obj;
-        }
+        Long id = DbHelper.runWithSingleResult("select id from dragon_user where email ='" + key + "'", null);
 
         if (cnt > 0) {
             return id;
@@ -176,7 +175,7 @@ public class barBean implements bar {
                 Long t4 = System.currentTimeMillis();
 
                 //re-pickup
-                sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "打死都不愿意去。");
+                sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "表示打死都不去。");
 
                 Long t5 = System.currentTimeMillis();
                 logger.info("Email takes: " + (t5 - t4));
@@ -198,7 +197,7 @@ public class barBean implements bar {
             ResultSet rs = st.executeQuery("select * from dragon_restaurant");
 
             while (rs.next()) {
-                list.add(new Restaurant(rs.getString(1), rs.getString(2), rs.getInt(3), rs.getInt(4), rs.getLong(5)));
+                list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id")));
             }
         } catch (Exception e) {
             logger.error("");
@@ -216,14 +215,10 @@ public class barBean implements bar {
         }
 
         long totalWeight = 0;
-        Long preId = null;
-        Object obj = DbHelper.runWithSingleResult("select res_id from dragon_record order by id desc limit 1", null);
-        if (obj != null) {
-            preId = (Long) obj;
-        }
+        Long preId = DbHelper.runWithSingleResult("select res_id from dragon_record order by id desc limit 1", null);
 
         for (Restaurant r : list) {
-            if (preId != null && preId.equals(r.getId())) {
+            if (preId != null && preId.equals(r.getId()) && list.size() > 1) {
                 continue;
             }
             totalWeight += r.getWeight();
@@ -234,7 +229,7 @@ public class barBean implements bar {
         long pos = 0;
         for (Restaurant r : list) {
 
-            if (preId != null && preId.equals(r.getId())) {
+            if (preId != null && preId.equals(r.getId()) && list.size() > 1) {
                 continue;
             }
 
@@ -249,9 +244,6 @@ public class barBean implements bar {
 
     public void sendLunchEmail(String reason) {
 
-        //TODO
-        MailSender ms = new MailSender("smtpx16.msoutlookonline.net", 25, "notify@accelops.com", "(jWohE68N", true);
-
         String mails = getMails();
 
         if (StringUtils.isNotEmpty(mails)) {
@@ -263,11 +255,28 @@ public class barBean implements bar {
             Long id = saveRecord(rec);
 
             String[] mailArr = mails.split(",");
-            for (String mail : mailArr) {
-                try {
-                    ms.sendHtmlContent(mail, "", "lin.cheng@accelops.com", r.getName(), buildBody(mail, r, reason, id));
-                } catch (IOException e) {
-                    logger.error(e.getMessage());
+            QueueHelper qh = new QueueHelper();
+
+            try {
+                qh.createDeliveryConnection(100);
+                qh.initializeMessage();
+                qh.initializeQueue("jms/EmailQueue");
+                qh.addParameter("title", r.getName());
+
+                for (String mail : mailArr) {
+                    qh.addParameter("to", mail);
+                    qh.addParameter("body", buildBody(mail, r, reason, id));
+                    qh.sendMsg();
+                }
+            } catch (Exception e) {
+                logger.error("", e);
+            } finally {
+                if (qh != null) {
+                    try {
+                        qh.close();
+                    } catch (Exception ex) {
+                        logger.error("", ex);
+                    }
                 }
             }
         }
@@ -282,7 +291,7 @@ public class barBean implements bar {
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(
                     "select res.name,res.factor,res.score,v.vote,count(*) from dragon_restaurant res " +
-                            "left join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
+                            "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
                             "group by res.name,res.factor,res.score,v.vote");
             while (rs.next()) {
                 String name = rs.getString(1);
@@ -334,18 +343,92 @@ public class barBean implements bar {
 
         Map<String, Stat> ss = stat();
         Stat s = ss.get(r.getName());
-        if(s != null) {
+        if (s != null) {
             sb.append(s.toString()).append("<br><br>");
         }
 
         String url = "http://" + server + ":" + port + "/dragon/rest/eat/";
 
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死也不去</a>").append("<br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去</a>").append("<br>");
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("Like</a>").append("<br>");
         sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("Dislike</a>").append("<br>");
         sb.append("<a href=\'").append(url + "unsub?mail=" + mail).append("\'/>").append("Unsubscribe</a>").append("<br>");
 
         return sb.toString();
+    }
+
+    public Long saveRecord(Record r) {
+
+        if (r.getId() == null || r.getId() <= 0) {
+            Long id = getNextId(null);
+            DbHelper.runUpdate(null, "insert into dragon_record (id,res_id,go_time) VALUES(%s,'%s',%s)",
+                    id, r.getResid(), System.currentTimeMillis());
+            return id;
+        } else {
+            DbHelper.runUpdate(null, "update dragon_record set veto=%s where id=%s", r.getVeto(), r.getId());
+            return r.getId();
+        }
+    }
+
+    @Override
+    public String saveSecret(String key, String value) {
+        String name = DbHelper.runWithSingleResult("select name from dragon_secret where name ='" + key + "'", null);
+        String custKey = getOrCreateKey();
+        String enValue = null;
+        try {
+            enValue = CryptoUtils.encryptPwd(value, custKey);
+        } catch (Exception e) {
+            logger.error("", e);
+            enValue = value;
+        }
+
+        if(name == null) {
+            DbHelper.runUpdate(null, "insert into dragon_secret (name,value) VALUES('%s','%s')", key, enValue);
+        } else {
+            DbHelper.runUpdate(null, "update dragon_secret set value='%s' where name='%s'", enValue, key);
+        }
+
+        return enValue;
+    }
+
+    @Override
+    public String getSecret(String key) {
+        String enValue = DbHelper.runWithSingleResult("select value from dragon_secret where name ='" + key + "'", null);
+
+        if(enValue == null){
+            return null;
+        }
+
+        String custKey = getOrCreateKey();
+        String value = null;
+        try {
+            value = CryptoUtils.decryptPwd(enValue,custKey);
+        } catch (Exception e) {
+            logger.error("", e);
+            value = enValue;
+        }
+
+        return value;
+    }
+
+    private String getOrCreateKey(){
+
+        String key = DbHelper.runWithSingleResult("select value from dragon_secret where name ='" + KEY + "'", null);
+
+        if(key != null){
+            return key;
+        }
+
+        SecretKey secretKey = null;
+        try {
+            secretKey = CryptoUtils.generateKey(CryptoALG.AES.getSpecName());
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("", e);
+        }
+        String strKey = CryptoUtils.secretKeyToString(secretKey);
+        DbHelper.runUpdate(null, "insert into dragon_secret (name,value) VALUES('%s','%s')", KEY, strKey);
+
+        return strKey;
     }
 
     private Record getRecord(Long recId) {
@@ -360,9 +443,9 @@ public class barBean implements bar {
             if (rs.next()) {
                 rec = new Record();
                 rec.setId(recId);
-                rec.setVeto(rs.getBoolean(4));
-                rec.setResid(rs.getLong(2));
-                rec.setGoTime(rs.getLong(3));
+                rec.setVeto(rs.getBoolean("veto"));
+                rec.setResid(rs.getLong("res_id"));
+                rec.setGoTime(rs.getLong("go_time"));
             }
 
             return rec;
@@ -384,7 +467,7 @@ public class barBean implements bar {
             ResultSet rs = st.executeQuery("select * from dragon_restaurant where id = " + id);
 
             if (rs.next()) {
-                ret = new Restaurant(rs.getString(1), rs.getString(2), rs.getInt(3), rs.getInt(4), rs.getLong(5));
+                ret = new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id"));
             }
 
             return ret;
@@ -408,9 +491,9 @@ public class barBean implements bar {
             if (rs.next()) {
                 rec = new User();
                 rec.setId(uid);
-                rec.setEmail(rs.getString(2));
-                rec.setSubscribed(rs.getBoolean(3));
-                rec.setName(rs.getString(4));
+                rec.setEmail(rs.getString("email"));
+                rec.setSubscribed(rs.getBoolean("subscribed"));
+                rec.setName(rs.getString("name"));
             }
 
             return rec;
@@ -419,19 +502,6 @@ public class barBean implements bar {
             return null;
         } finally {
             DbHelper.closeConn(conn);
-        }
-    }
-
-    public Long saveRecord(Record r) {
-
-        if (r.getId() == null || r.getId() <= 0) {
-            Long id = getNextId(null);
-            DbHelper.runUpdate(null, "insert into dragon_record (id,res_id,go_time) VALUES(%s,'%s',%s)",
-                    id, r.getResid(), System.currentTimeMillis());
-            return id;
-        } else {
-            DbHelper.runUpdate(null, "update dragon_record set veto=%s where id=%s", r.getVeto(), r.getId());
-            return r.getId();
         }
     }
 
@@ -458,10 +528,10 @@ public class barBean implements bar {
             } else {
                 DbHelper.runUpdate(conn, "insert into dragon_vote (rec_id,vote,email) VALUES(%s,'%s','%s')", rid, res, mail);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("", e);
         } finally {
-            if(!reuse){
+            if (!reuse) {
                 DbHelper.closeConn(conn);
             }
         }
@@ -478,7 +548,7 @@ public class barBean implements bar {
 
             List<String> list = new ArrayList<String>();
             while (rs.next()) {
-                list.add(rs.getString(1));
+                list.add(rs.getString("email"));
             }
 
             return StringUtils.join(list, ",");
@@ -492,10 +562,7 @@ public class barBean implements bar {
     }
 
     private Long getNextId(Connection connection) {
-        Object obj = DbHelper.runWithSingleResult("select nextval ('dragon_id_sec')", connection);
-        if (obj == null) {
-            return 0L;
-        }
-        return (Long) obj;
+        Long id = DbHelper.runWithSingleResult("select nextval ('dragon_id_sec')", connection);
+        return id;
     }
 }

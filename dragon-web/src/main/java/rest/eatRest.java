@@ -1,10 +1,10 @@
 package rest;
 
 import com.google.gson.Gson;
-import dragon.*;
-import dragon.db.DbHelper;
+import dragon.utils.DbHelper;
 import dragon.service.*;
 import dragon.model.food.*;
+import dragon.utils.BeanFinder;
 
 import javax.ws.rs.*;
 import java.util.List;
@@ -17,8 +17,8 @@ import java.util.List;
 public class eatRest {
     @Path("what")
     @GET
-    public String what(@QueryParam("save") Boolean save) throws Exception {
-        bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+    public String what(@QueryParam("save") Boolean save) {
+        Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
         Restaurant r = t.pickRestaurant();
 
         if(save) {
@@ -33,16 +33,16 @@ public class eatRest {
 
     @Path("xadd")
     @PUT
-    public String batchAdd(String csv) throws Exception{
-        bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+    public String batchAdd(String csv) {
+        Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
         int cnt = t.importRestaurants(csv);
         return cnt + "";
     }
 
     @Path("add")
     @PUT
-    public String add(String json) throws Exception{
-        bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+    public String add(String json) {
+        Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
         Gson gs = new Gson();
         Restaurant r = gs.fromJson(json, Restaurant.class);
         t.saveRestaurant(r, null);
@@ -52,15 +52,15 @@ public class eatRest {
 
     @Path("del")
     @DELETE
-    public String del(@QueryParam("name") String name) throws Exception{
+    public String del(@QueryParam("name") String name) {
         int cnt = DbHelper.runUpdate(null, "delete from dragon_restaurant where lower(name) = '%s'", name.toLowerCase());
         return cnt + "";
     }
 
     @Path("view")
     @GET
-    public String view() throws Exception{
-        bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+    public String view() {
+        Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
         List<Restaurant> rs = t.getRestaurants();
         Gson gs = new Gson();
         return gs.toJson(rs);
@@ -69,8 +69,8 @@ public class eatRest {
 
     @Path("sub")
     @GET
-    public String sub(@QueryParam("mail") String mail) throws Exception{
-        bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+    public String sub(@QueryParam("mail") String mail) {
+        Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
         if(t.subscribe(mail, true)){
             return "Subscribed!";
         } else{
@@ -80,8 +80,8 @@ public class eatRest {
 
     @Path("unsub")
     @GET
-    public String unsub(@QueryParam("mail") String mail) throws Exception{
-        bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+    public String unsub(@QueryParam("mail") String mail) {
+        Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
         if(t.subscribe(mail, false)){
             return "Unsubscribed!";
         } else{
@@ -91,14 +91,14 @@ public class eatRest {
 
     @Path("vote")
     @GET
-    public String vote(@QueryParam("id") Long id, @QueryParam("mail") String mail, @QueryParam("vote") int vote) throws Exception{
+    public String vote(@QueryParam("id") Long id, @QueryParam("mail") String mail, @QueryParam("vote") int vote) {
 
         Vote.Result res = Vote.Result.values()[vote];
         Vote v = new Vote();
         v.setRecId(id);
         v.setResult(res);
         v.setEmail(mail);
-        bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+        Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
 
         if(t.vote(v)){
             return "Succeed!";
@@ -107,23 +107,12 @@ public class eatRest {
         }
     }
 
-    //Threading test
-    @Path("test")
+    @Path("sec")
     @GET
-    public String thread(@QueryParam("name") final String name) throws Exception{
-        final bar t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
-
-        for(int i = 0; i < 50; i++){
-            new Thread() {
-                public void run() {
-                    System.out.println(this.getId());
-                    Restaurant r = new Restaurant(name, "", 2, 5);
-                    t.saveRestaurant(r, null);
-                }
-            }.start();
-        }
-
-        return name;
+    public String sec(@QueryParam("key") final String key, @QueryParam("value") final String value) {
+        final Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
+        String ret = t.saveSecret(key, value);
+        return ret;
     }
 
 }

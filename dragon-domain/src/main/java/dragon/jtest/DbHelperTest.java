@@ -1,17 +1,13 @@
 package dragon.jtest;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import dragon.db.DbHelper;
-import org.apache.commons.dbcp.BasicDataSource;
+import dragon.utils.DbHelper;
 import org.junit.Test;
-import org.omg.DynamicAny.DynAnyHelper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by lin.cheng on 6/16/15.

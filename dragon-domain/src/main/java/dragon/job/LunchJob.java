@@ -1,8 +1,8 @@
 package dragon.job;
 
-import dragon.BeanFinder;
-import dragon.service.bar;
-import dragon.service.barBean;
+import dragon.utils.BeanFinder;
+import dragon.service.Eat;
+import dragon.service.EatBean;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -12,13 +12,13 @@ import org.quartz.JobExecutionException;
  */
 public class LunchJob extends AbstractJob {
 
-    bar t = null;
+    Eat t = null;
 
     public LunchJob() {
         super();
     }
 
-    public LunchJob(bar t) {
+    public LunchJob(Eat t) {
         super();
         this.t = t;
     }
@@ -29,7 +29,7 @@ public class LunchJob extends AbstractJob {
         LogFactory.getLog(LunchJob.class).info("job excuting...");
 
         if(t == null){
-            t = BeanFinder.getInstance().getLocalSessionBean(barBean.class);
+            t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
         }
 
         t.sendLunchEmail(null);
