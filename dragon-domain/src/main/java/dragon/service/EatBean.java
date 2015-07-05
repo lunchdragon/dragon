@@ -375,9 +375,9 @@ public class EatBean implements Eat {
 
         String url = "http://" + server + ":" + port + "/dragon/rest/eat/";
 
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a><br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a><br><br>");
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("Like</a>").append("<br>");
-        sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("Dislike</a>").append("<br>");
+        sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("Dislike</a>").append("<br><br>");
         sb.append("<a href=\'").append(url + "unsub?mail=" + mail).append("\'/>").append("Unsubscribe</a>").append("<br>");
 
         return sb.toString();

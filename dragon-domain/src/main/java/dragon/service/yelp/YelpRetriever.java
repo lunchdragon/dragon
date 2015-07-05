@@ -110,7 +110,7 @@ public class YelpRetriever {
                     String cat = cats.split(",")[0];
                     cat = cat.substring(cat.indexOf("\"") + 1, cat.lastIndexOf("\""));
 
-                    Restaurant r = new Restaurant(escape(name), bo.get("url").toString(), factor, 10, "", cat);
+                    Restaurant r = new Restaurant(escape(name), bo.get("url").toString(), factor, 20, "", cat);
                     logger.debug("saving " + r.toString());
 
                     Eat t = new EatBean();

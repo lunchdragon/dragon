@@ -17,9 +17,12 @@ import java.util.Map;
 public class ConfigHelper {
     static final String PATH = "/opt/dragon/config.txt";
     static final String EN_PF = "en.";
-    static final Map<String, String> map = new HashMap<String, String>();
+    static volatile long fileTimestamp = 0L;
+    static volatile boolean loading = false;
 
-    private static ConfigHelper instance;
+    private static ConfigHelper instance = new ConfigHelper();
+    final Map<String, String> map = new HashMap<String, String>();
+
     private static final Object lock = new Object();
     static Log logger = LogFactory.getLog(ConfigHelper.class);
 
@@ -27,46 +30,58 @@ public class ConfigHelper {
     }
 
     public static ConfigHelper instance() {
-        if (instance == null) {
+        long lastModified = new File(PATH).lastModified();
+
+        if (lastModified > fileTimestamp) {
             synchronized (lock) {
-                if (instance == null) {
-                    instance = new ConfigHelper();
-                }
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(PATH)));
-                    String line = null;
-                    Eat t = new EatBean();
-                    while ((line = bufferedReader.readLine()) != null) {
-                        line = line.trim();
-                        if (line.length() == 0) {
-                            continue;
-                        }
-
-                        String[] property;
-                        String value = null;
-                        int index = line.indexOf("=");
-                        if (index > 0) {
-                            property = new String[2];
-                            property[0] = line.substring(0, index).trim();
-                            value = line.substring(index + 1).trim();
-
-                            if(value.startsWith(EN_PF)){
-                                value = t.getSecret(value);
-                            }
-                        } else {
-                            property = null;
-                        }
-                        if (property != null) {
-                            map.put(property[0] ,value);
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.error("", e);
+                if (lastModified > fileTimestamp && !loading) {
+                    logger.info("Config reloading...");
+                    loading = true;
+                    instance.load();
+                    fileTimestamp = lastModified;
+                    loading = false;
                 }
             }
         }
 
         return instance;
+    }
+
+    private void load(){
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(PATH)));
+            String line = null;
+            Eat t = new EatBean();
+
+            map.clear();
+
+            while ((line = bufferedReader.readLine()) != null) {
+                line = line.trim();
+                if (line.length() == 0) {
+                    continue;
+                }
+
+                String[] property;
+                String value = null;
+                int index = line.indexOf("=");
+                if (index > 0) {
+                    property = new String[2];
+                    property[0] = line.substring(0, index).trim();
+                    value = line.substring(index + 1).trim();
+
+                    if(value.startsWith(EN_PF)){
+                        value = t.getSecret(value);//requires DB config - make sure DB config is loaded already
+                    }
+                } else {
+                    property = null;
+                }
+                if (property != null) {
+                    map.put(property[0] ,value);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("", e);
+        }
     }
 
     public String getConfig(String key) {
