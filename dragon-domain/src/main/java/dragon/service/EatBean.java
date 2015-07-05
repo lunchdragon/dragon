@@ -71,11 +71,11 @@ public class EatBean implements Eat {
 
             if (id != null) {
                 if(StringUtils.isNotBlank(r.getAlias())){
-                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s',alias='%s' where name='%s'",
-                            r.getLink(),r.getCategory(), r.getAlias(), key);
+                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s',alias='%s',score=%s where name='%s'",
+                            r.getLink(),r.getCategory(), r.getAlias(), r.getScore(), key);
                 } else{
-                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s' where name='%s'",
-                            r.getLink(),r.getCategory(), key);
+                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s'',score=%s where name='%s'",
+                            r.getLink(),r.getCategory(), r.getScore(), key);
                 }
 
             } else {
@@ -160,12 +160,7 @@ public class EatBean implements Eat {
             return false;
         }
 
-        if (saveVote(v, null)) {
-            //change weight
-            int score = v.getResult().getScore();
-            res.setScore(res.getScore() + score);
-            saveRestaurant(res, null);
-        }
+        saveVote(v, null);
 
         if (v.getResult() == Vote.Result.killme) {
 
@@ -220,6 +215,7 @@ public class EatBean implements Eat {
             return null;
         }
 
+        Map<String, Stat> ss = stat();
         long totalWeight = 0;
         Long preId = DbHelper.runWithSingleResult("select res_id from dragon_record order by id desc limit 1", null);
 
@@ -227,7 +223,7 @@ public class EatBean implements Eat {
             if (preId != null && preId.equals(r.getId()) && list.size() > 1) {
                 continue;
             }
-            totalWeight += r.getWeight();
+            totalWeight += getWeight(ss, r);
         }
 
         long rdm = Math.abs(new Random().nextLong());
@@ -239,10 +235,10 @@ public class EatBean implements Eat {
                 continue;
             }
 
-            if (pos <= selected && selected < pos + r.getWeight()) {
+            if (pos <= selected && selected < pos + getWeight(ss, r)) {
                 return r;
             }
-            pos += r.getWeight();
+            pos += getWeight(ss, r);
         }
 
         return null;
@@ -325,6 +321,9 @@ public class EatBean implements Eat {
                 if (vr == Vote.Result.killme) {
                     s.setVetoed(s.getVetoed() + cnt);
                 }
+                if(vr != null){
+                    s.setScore(s.getScore() + vr.getScore() * cnt);
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -345,7 +344,7 @@ public class EatBean implements Eat {
             sb.append(reason).append("<br><br>");
         }
 
-        sb.append(r.getLink()).append("<br><br>");
+        sb.append(r.getLink()).append(" <br><br>");
 
         Map<String, Stat> ss = stat();
         Stat s = ss.get(r.getName());
@@ -355,7 +354,7 @@ public class EatBean implements Eat {
 
         String url = "http://" + server + ":" + port + "/dragon/rest/eat/";
 
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去</a>").append("<br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a><br>");
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("Like</a>").append("<br>");
         sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("Dislike</a>").append("<br>");
         sb.append("<a href=\'").append(url + "unsub?mail=" + mail).append("\'/>").append("Unsubscribe</a>").append("<br>");
@@ -571,5 +570,13 @@ public class EatBean implements Eat {
     private Long getNextId(Connection connection) {
         Long id = DbHelper.runWithSingleResult("select nextval ('dragon_id_sec')", connection);
         return id;
+    }
+
+    private long getWeight(Map<String, Stat> ss, Restaurant r){
+        String name = r.getName();
+        if(ss.get(name) != null){
+            return r.getWeight() * ss.get(name).getScore();
+        }
+        return r.getWeight() * r.getScore();
     }
 }

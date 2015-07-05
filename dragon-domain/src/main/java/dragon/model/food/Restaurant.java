@@ -9,7 +9,7 @@ public class Restaurant {
     String name;
     String link;
     int factor = 5;//1-20
-    int score = 10;//0-100
+    int score = 20;//0-100
     Long id;
     String alias;
     String category;
@@ -117,7 +117,7 @@ public class Restaurant {
     }
 
     public Long getWeight(){
-        return getFactor() * getScore() * 1L;
+        return getFactor() * 1L;
     }
 
     @Override

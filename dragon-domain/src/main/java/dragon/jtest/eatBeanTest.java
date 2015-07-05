@@ -46,7 +46,7 @@ public class eatBeanTest {
 
     @Test
     public void testPickRestaurant()  {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 10; i++) {
             Restaurant r = f.pickRestaurant("name like 'test%'");
 
             Record rec = new Record();
@@ -58,7 +58,7 @@ public class eatBeanTest {
 
         Map<String, Stat> ret = f.stat();
 
-        System.out.printf("%-10s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
         for (String name : ret.keySet()) {
             Stat s = ret.get(name);
             System.out.println(s.toPrintString());
@@ -73,7 +73,7 @@ public class eatBeanTest {
         try {
             conn = DbHelper.getConn();
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 5");
+            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 6");
 
             while (rs.next()) {
                 Long id = rs.getLong(1);
@@ -92,7 +92,7 @@ public class eatBeanTest {
 
         Map<String, Stat> ret = f.stat();
 
-        System.out.printf("%-10s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
         for (String name : ret.keySet()) {
             Stat s = ret.get(name);
             System.out.println(s.toPrintString());
@@ -114,7 +114,14 @@ public class eatBeanTest {
     }
 
     @Test
-    public void testSaveUser()  {
+    public void testStat()  {
+        Map<String, Stat> ret = f.stat();
+
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
+        for (String name : ret.keySet()) {
+            Stat s = ret.get(name);
+            System.out.println(s.toPrintString());
+        }
     }
 
     @Test
@@ -137,7 +144,7 @@ public class eatBeanTest {
 
     @Test
     public void testSecret(){
-        String sec = "jWohE68N";
+        String sec = "(jWohE68N";
         f.saveSecret("test", sec);
         String v = f.getSecret("test");
 

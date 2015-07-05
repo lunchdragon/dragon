@@ -61,7 +61,7 @@ public class eatRest {
     @GET
     public String view() {
         Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
-        List<Restaurant> rs = t.getRestaurants();
+        List<Restaurant> rs = t.getRestaurants(null);
         Gson gs = new Gson();
         return gs.toJson(rs);
 

@@ -59,10 +59,16 @@ public class Stat {
     }
 
     public int getScore() {
+        if(score < 1){
+            score = 1;
+        }
         return score;
     }
 
     public void setScore(int score) {
+        if(score < 1){
+            score = 1;
+        }
         this.score = score;
     }
 
@@ -86,7 +92,7 @@ public class Stat {
     }
 
     public String toPrintString() {
-        return String.format("%-10s%-10s%-10s%-10s%-10s%-10s%-10s", name, getFactor(), getScore(), getSelected(), getLiked(), getDisliked(), getVetoed());
+        return String.format("%-35s%-10s%-10s%-10s%-10s%-10s%-10s", name, getFactor(), getScore(), getSelected(), getLiked(), getDisliked(), getVetoed());
     }
 
 }
