@@ -1,5 +1,6 @@
 package dragon.jtest;
 
+import dragon.comm.Utils;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
 import dragon.model.food.*;
@@ -29,7 +30,7 @@ public class eatBeanTest {
     public static void init(){
         ConfigHelper.instance();
         for(int i = 0; i < 10; i++){
-            Restaurant r = new Restaurant("test" + i, "", 2, 5);
+            Restaurant r = new Restaurant("test" + i, "", 2, 5, null, "");
             f.saveRestaurant(r, null);
         }
     }
@@ -45,8 +46,8 @@ public class eatBeanTest {
 
     @Test
     public void testPickRestaurant()  {
-        for (int i = 0; i < 5; i++) {
-            Restaurant r = f.pickRestaurant();
+        for (int i = 0; i < 8; i++) {
+            Restaurant r = f.pickRestaurant("name like 'test%'");
 
             Record rec = new Record();
             rec.setResid(r.getId());
@@ -100,14 +101,11 @@ public class eatBeanTest {
 
     @Test
     public void testSaveRestaurant()  {
-        Restaurant r = new Restaurant("test15", "", 2, 5);
-        f.saveRestaurant(r, null);
-        assertNotNull(r);
     }
 
     @Test
     public void testGetRestaurants()  {
-        int cnt = f.getRestaurants().size();
+        int cnt = f.getRestaurants(null).size();
         assertTrue(cnt >= 0);
     }
 
@@ -125,8 +123,16 @@ public class eatBeanTest {
         assertTrue(r);
     }
 
+    @Ignore
     @Test
     public void testImportRestaurants()  {
+        try {
+            String csv = Utils.readRawContentFromFile("D:\\Documents\\1.csv");
+            int cnt = f.importRestaurants(csv);
+            assertTrue(cnt >= 0);
+        } catch (Exception e) {
+            logger.error("", e);
+        }
     }
 
     @Test

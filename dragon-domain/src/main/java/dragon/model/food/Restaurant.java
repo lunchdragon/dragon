@@ -1,28 +1,36 @@
 package dragon.model.food;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Created by lin.cheng on 6/16/15.
  */
 public class Restaurant {
     String name;
     String link;
-    int factor = 5;//1-10
+    int factor = 5;//1-20
     int score = 10;//0-100
     Long id;
+    String alias;
+    String category;
 
-    public Restaurant(String name, String link, int factor, int score, Long id) {
+    public Restaurant(String name, String link, int factor, int score, Long id, String alias, String category) {
         this.name = name;
         this.link = link;
         this.factor = factor;
         this.score = score;
+        this.alias = alias;
+        this.category = category;
         this.id = id;
     }
 
-    public Restaurant(String name, String link, int factor, int score) {
+    public Restaurant(String name, String link, int factor, int score, String alias, String category) {
         this.name = name;
         this.link = link;
         this.factor = factor;
         this.score = score;
+        this.alias = alias;
+        this.category = category;
     }
 
     public String getName() {
@@ -49,12 +57,31 @@ public class Restaurant {
         this.id = id;
     }
 
+    public String getAlias() {
+        if(StringUtils.isNotBlank(alias)) {
+            return alias;
+        }
+        return name;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     public int getFactor() {
         if(factor < 1){
             factor = 1;
         }
-        if(factor > 10){
-            factor = 10;
+        if(factor > 20){
+            factor = 20;
         }
         return factor;
     }
@@ -63,8 +90,8 @@ public class Restaurant {
         if(factor < 1){
             factor = 1;
         }
-        if(factor > 10){
-            factor = 10;
+        if(factor > 20){
+            factor = 20;
         }
         this.factor = factor;
     }
@@ -91,5 +118,17 @@ public class Restaurant {
 
     public Long getWeight(){
         return getFactor() * getScore() * 1L;
+    }
+
+    @Override
+    public String toString() {
+        return "Restaurant{" +
+                "name: '" + name + '\'' +
+                ", link: '" + link + '\'' +
+                ", factor: " + factor +
+                ", score: " + score +
+                ", alias: " + alias +
+                ", category: " + category +
+                '}';
     }
 }

@@ -19,7 +19,7 @@ public class eatRest {
     @GET
     public String what(@QueryParam("save") Boolean save) {
         Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
-        Restaurant r = t.pickRestaurant();
+        Restaurant r = t.pickRestaurant(null);
 
         if(save) {
             Record rec = new Record();

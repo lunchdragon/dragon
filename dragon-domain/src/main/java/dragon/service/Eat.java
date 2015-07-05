@@ -12,8 +12,8 @@ import java.util.Map;
  */
 @Local
 public interface Eat {
-    Restaurant pickRestaurant();
-    List<Restaurant> getRestaurants();
+    Restaurant pickRestaurant(String condition);
+    List<Restaurant> getRestaurants(String condition);
     Long saveRestaurant(Restaurant r, Connection conn);
     int importRestaurants(String csv);
     Long saveUser(User u);

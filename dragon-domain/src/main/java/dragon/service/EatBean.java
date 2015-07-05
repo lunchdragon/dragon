@@ -1,12 +1,12 @@
 package dragon.service;
 
-import dragon.utils.ConfigHelper;
 import dragon.comm.Utils;
 import dragon.comm.crypto.CryptoALG;
 import dragon.comm.crypto.CryptoUtils;
+import dragon.model.food.*;
+import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
-import dragon.model.food.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,7 +37,7 @@ public class EatBean implements Eat {
         try {
             conn = DbHelper.getConn();
             for (String[] item : data) {
-                Restaurant r = new Restaurant(item[0], item[1], Integer.parseInt(item[2]), Integer.parseInt(item[3]));
+                Restaurant r = new Restaurant(item[0], item[1], Integer.parseInt(item[2]), Integer.parseInt(item[3]), item[4], item[5]);
                 saveRestaurant(r, conn);
             }
         } catch (Exception e) {
@@ -70,16 +70,21 @@ public class EatBean implements Eat {
             id = DbHelper.runWithSingleResult("select id from dragon_restaurant where name ='" + key + "'", conn);
 
             if (id != null) {
-                DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s', factor=%s,score=%s where name='%s'",
-                        r.getLink(), r.getFactor(), r.getScore(), key);
+                if(StringUtils.isNotBlank(r.getAlias())){
+                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s',alias='%s' where name='%s'",
+                            r.getLink(),r.getCategory(), r.getAlias(), key);
+                } else{
+                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s' where name='%s'",
+                            r.getLink(),r.getCategory(), key);
+                }
 
             } else {
                 id = getNextId(conn);
 
                 logger.debug("Add: " + Thread.currentThread().getId());
 
-                DbHelper.runUpdate(conn, "insert into dragon_restaurant (name,link,factor,score,id) VALUES('%s','%s',%s,%s,%s)",
-                        key, r.getLink(), r.getFactor(), r.getScore(), id);
+                DbHelper.runUpdate(conn, "insert into dragon_restaurant (name,link,factor,score,id,category,alias) VALUES('%s','%s',%s,%s,%s,'%s','%s')",
+                        key, r.getLink(), r.getFactor(), r.getScore(), id, r.getCategory(), StringUtils.isNotBlank(r.getAlias()) ? r.getAlias() : key);
             }
 
             conn.commit();
@@ -188,16 +193,17 @@ public class EatBean implements Eat {
         return true;
     }
 
-    public List<Restaurant> getRestaurants() {
+    public List<Restaurant> getRestaurants(String condition) {
         Connection conn = null;
         List<Restaurant> list = new ArrayList<Restaurant>();
         try {
             conn = DbHelper.getConn();
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from dragon_restaurant");
+            ResultSet rs = st.executeQuery("select * from dragon_restaurant" + (StringUtils.isBlank(condition) ? "" : " where " + condition));
 
             while (rs.next()) {
-                list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id")));
+                list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id")
+                ,rs.getString("alias"), rs.getString("category")));
             }
         } catch (Exception e) {
             logger.error("");
@@ -207,9 +213,9 @@ public class EatBean implements Eat {
         return list;
     }
 
-    public Restaurant pickRestaurant() {
+    public Restaurant pickRestaurant(String condition) {
 
-        List<Restaurant> list = getRestaurants();
+        List<Restaurant> list = getRestaurants(condition);
         if (list == null || list.size() == 0) {
             return null;
         }
@@ -247,7 +253,7 @@ public class EatBean implements Eat {
         String mails = getMails();
 
         if (StringUtils.isNotEmpty(mails)) {
-            Restaurant r = pickRestaurant();
+            Restaurant r = pickRestaurant(null);
             if (r == null) return;
 
             Record rec = new Record();
@@ -261,7 +267,7 @@ public class EatBean implements Eat {
                 qh.createDeliveryConnection(100);
                 qh.initializeMessage();
                 qh.initializeQueue("jms/EmailQueue");
-                qh.addParameter("title", r.getName());
+                qh.addParameter("title", r.getAlias());
 
                 for (String mail : mailArr) {
                     qh.addParameter("to", mail);
@@ -467,7 +473,8 @@ public class EatBean implements Eat {
             ResultSet rs = st.executeQuery("select * from dragon_restaurant where id = " + id);
 
             if (rs.next()) {
-                ret = new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id"));
+                ret = new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id")
+                        , rs.getString("alias"), rs.getString("category"));
             }
 
             return ret;
