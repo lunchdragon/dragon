@@ -45,8 +45,12 @@ public class eatBeanTest {
     }
 
     @Test
-    public void testPickRestaurant()  {
-        for (int i = 0; i < 10; i++) {
+    public void testPickNVote()  {
+
+        System.out.println("testPickNVote...");
+
+        for (int i = 0; i < 5; i++) {
+//            Restaurant r = f.pickRestaurant(null);
             Restaurant r = f.pickRestaurant("name like 'test%'");
 
             Record rec = new Record();
@@ -56,24 +60,11 @@ public class eatBeanTest {
             assertNotNull(r);
         }
 
-        Map<String, Stat> ret = f.stat();
-
-        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
-        for (String name : ret.keySet()) {
-            Stat s = ret.get(name);
-            System.out.println(s.toPrintString());
-        }
-
-    }
-
-    @Test
-    public void testVote(){
-
         Connection conn = null;
         try {
             conn = DbHelper.getConn();
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 6");
+            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 5");
 
             while (rs.next()) {
                 Long id = rs.getLong(1);
@@ -93,39 +84,43 @@ public class eatBeanTest {
         Map<String, Stat> ret = f.stat();
 
         System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
-        for (String name : ret.keySet()) {
-            Stat s = ret.get(name);
+        for (Stat s : ret.values()) {
             System.out.println(s.toPrintString());
         }
     }
 
     @Test
     public void testSaveRestaurant()  {
+        for(int i = 0; i < 5; i++){
+            Restaurant r = new Restaurant("testsave" + i, "", 2, 5, null, "");
+            f.saveRestaurant(r, null);
+        }
     }
 
     @Test
     public void testGetRestaurants()  {
+        System.out.println("testGetRestaurants...");
+
         int cnt = f.getRestaurants(null).size();
         assertTrue(cnt >= 0);
     }
 
     @Test
-    public void testSendEmail()  {
-    }
-
-    @Test
     public void testStat()  {
+        System.out.println("testStat...");
+
         Map<String, Stat> ret = f.stat();
 
         System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
-        for (String name : ret.keySet()) {
-            Stat s = ret.get(name);
+        for (Stat s : ret.values()) {
             System.out.println(s.toPrintString());
         }
     }
 
     @Test
     public void testSubscribe()  {
+        System.out.println("testSubscribe...");
+
         Boolean r = f.subscribe("b@c.com", false);
         assertTrue(r);
     }
@@ -133,8 +128,10 @@ public class eatBeanTest {
     @Ignore
     @Test
     public void testImportRestaurants()  {
+        System.out.println("testImportRestaurants...");
+
         try {
-            String csv = Utils.readRawContentFromFile("D:\\Documents\\1.csv");
+            String csv = Utils.readRawContentFromFile("D:\\dragon\\resource\\Milpitas.csv");
             int cnt = f.importRestaurants(csv);
             assertTrue(cnt >= 0);
         } catch (Exception e) {
@@ -144,6 +141,8 @@ public class eatBeanTest {
 
     @Test
     public void testSecret(){
+        System.out.println("testSecret...");
+
         String sec = "(jWohE68N";
         f.saveSecret("test", sec);
         String v = f.getSecret("test");

@@ -1,14 +1,12 @@
 package dragon.utils;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import dragon.model.food.Vote;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.beans.PropertyVetoException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
  * Created by lin.cheng on 6/16/15.
@@ -99,6 +97,28 @@ public class DbHelper {
         return null;
     }
 
+    public static <T> T runWithSingleResult2(Connection conn, String sql,  Object ... params){
+        boolean reuse = conn != null;//Remember to close connection outside
+        try {
+            if(!reuse){
+                conn = DbHelper.getConn();
+            }
+            PreparedStatement st = conn.prepareStatement(sql);
+            setParameters(st, params);
+            ResultSet rs = st.executeQuery();
+            if(rs.next()){
+                return (T) rs.getObject(1);
+            }
+        } catch (Exception e){
+            logger.error("", e);
+        } finally {
+            if(!reuse){
+                closeConn(conn);
+            }
+        }
+        return null;
+    }
+
     public static int runUpdate(Connection conn, String sqlFmt, Object ... params){
         boolean reuse = conn != null;//Remember to close connection outside
         try {
@@ -115,6 +135,47 @@ public class DbHelper {
         } finally {
             if(!reuse){
                 closeConn(conn);
+            }
+        }
+    }
+
+    public static int runUpdate2(Connection conn, String sql, Object ... params){
+        boolean reuse = conn != null;//Remember to close connection outside
+        try {
+            if(!reuse){
+                conn = DbHelper.getConn();
+            }
+            PreparedStatement st = conn.prepareStatement(sql);
+            setParameters(st, params);
+            int cnt = st.executeUpdate();
+            return cnt;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        } finally {
+            if(!reuse){
+                closeConn(conn);
+            }
+        }
+    }
+
+    private static void setParameters(final PreparedStatement st, Object ... params) throws SQLException {
+        for(int i = 0; i<params.length; i++){
+            if (params[i] == null){
+                st.setNull(i+1, Types.NULL);
+                continue;
+            }
+            Object p = params[i];
+            if (p instanceof Integer || p instanceof Vote.Result){
+                st.setInt(i + 1, (Integer) p);
+            } else if(p instanceof Long){
+                st.setLong(i + 1, (Long) p);
+            } else if(p instanceof Boolean){
+                st.setBoolean(i + 1, (Boolean) p);
+            } else if(p instanceof String){
+                st.setString(i + 1, (String) p);
+            } else {
+                throw new RuntimeException("Not supported type:" + p.getClass());
             }
         }
     }

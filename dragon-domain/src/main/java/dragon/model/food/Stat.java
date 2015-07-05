@@ -58,17 +58,21 @@ public class Stat {
         this.factor = factor;
     }
 
+    public int getRawScore() {
+        return score;
+    }
+
     public int getScore() {
         if(score < 1){
             score = 1;
+        }
+        if(score > 100){
+            score = 100;
         }
         return score;
     }
 
     public void setScore(int score) {
-        if(score < 1){
-            score = 1;
-        }
         this.score = score;
     }
 

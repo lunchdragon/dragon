@@ -35,22 +35,22 @@ public class YelpRetriever {
         YelpAPI ya = new YelpAPI();
         YelpAPI.YelpAPICLI yaCli = new YelpAPI.YelpAPICLI();
         yaCli.limit = 20;
-        if(StringUtils.isNotBlank(location)){
+        if (StringUtils.isNotBlank(location)) {
             yaCli.location = location;
         }
-        if(StringUtils.isNotBlank(category)){
+        if (StringUtils.isNotBlank(category)) {
             yaCli.cat = category;
         }
-        if(StringUtils.isNotBlank(distance)){
+        if (StringUtils.isNotBlank(distance)) {
             yaCli.dis = distance;
         }
-        if(StringUtils.isNotBlank(exclude)){
+        if (StringUtils.isNotBlank(exclude)) {
             exs = exclude.split(",");
         }
 
         int cnt = 0;
 
-        for(int i = 0; i < 10; i++){//max = 200
+        for (int i = 0; i < 10; i++) {//max = 200
             yaCli.offset = 20 * i;
             String json = YelpAPI.queryAPI(ya, yaCli);
 
@@ -65,7 +65,7 @@ public class YelpRetriever {
 
             JSONArray businesses = (JSONArray) response.get("businesses");
             logger.info(String.format("%s businesses found ...", businesses.size()));
-            if (businesses.size() == 0){
+            if (businesses.size() == 0) {
                 break;//no more
             }
 
@@ -73,8 +73,8 @@ public class YelpRetriever {
 
             try {
                 conn = DbHelper.getConn();
-                for(Object obj : businesses){
-                    JSONObject bo = (JSONObject)obj;
+                for (Object obj : businesses) {
+                    JSONObject bo = (JSONObject) obj;
 
                     String cats = bo.get("categories").toString().toLowerCase();
                     Integer factor = Math.round((Float.parseFloat(bo.get("rating").toString()) * 2));
@@ -82,28 +82,28 @@ public class YelpRetriever {
                     Integer reviews = Integer.parseInt(bo.get("review_count").toString());
 
                     boolean excluded = reviews < 100;
-                    for(String ex:exs){
-                        if (cats.contains(ex)){
+                    for (String ex : exs) {
+                        if (cats.contains(ex)) {
                             logger.info(name + " excluded");
                             excluded = true;
                             break;
                         }
                     }
-                    if (name.contains("Express") || name.contains("Tea")){
+                    if (name.contains("Express") || name.contains("Tea")) {
                         excluded = true;
                     }
 
-                    if(excluded){
+                    if (excluded) {
                         continue;
                     }
 
-                    if(cats.contains("japan") || cats.contains("korea")) {
+                    if (cats.contains("japan") || cats.contains("korea")) {
                         factor -= 6;
                     }
-                    if(cats.contains("canton")) {
+                    if (cats.contains("canton")) {
                         factor -= 3;
                     }
-                    if(name.contains("Seafood") || name.contains("BBQ")){
+                    if (name.contains("Seafood") || name.contains("BBQ")) {
                         factor -= 2;
                     }
 
@@ -116,7 +116,7 @@ public class YelpRetriever {
                     Eat t = new EatBean();
                     t.saveRestaurant(r, conn);
 
-                    cnt ++;
+                    cnt++;
                 }
             } catch (SQLException e) {
                 logger.error("", e);
@@ -125,13 +125,17 @@ public class YelpRetriever {
             }
         }
 
-        logger.info(String.format("Total : %s businesses found.",cnt));
+        logger.info(String.format("Total : %s businesses found.", cnt));
         return cnt;
     }
 
-    private static String escape(String s){
-        s = StringUtils.replace(s, "'", "&apos;");
-        return s;
+    private static String escape(String value) {
+//        value = StringUtils.replace(value, "&", "&amp;");
+//        value = StringUtils.replace(value, "<", "&lt;");
+//        value = StringUtils.replace(value, ">", "&gt;");
+//        value = StringUtils.replace(value, "'", "&apos;");
+//        value = StringUtils.replace(value, "\"", "&quot;");
+        return value;
     }
 
     public static void main(String[] args) {

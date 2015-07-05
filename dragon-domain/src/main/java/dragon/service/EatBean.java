@@ -67,15 +67,15 @@ public class EatBean implements Eat {
 
             logger.debug("Locked: " + Thread.currentThread().getId());
 
-            id = DbHelper.runWithSingleResult("select id from dragon_restaurant where name ='" + key + "'", conn);
+            id = DbHelper.runWithSingleResult2(conn, "select id from dragon_restaurant where name =?", key);
 
             if (id != null) {
                 if(StringUtils.isNotBlank(r.getAlias())){
-                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s',alias='%s',score=%s where name='%s'",
-                            r.getLink(),r.getCategory(), r.getAlias(), r.getScore(), key);
+                    DbHelper.runUpdate2(conn, "update dragon_restaurant set link=?,category=?,alias=?,score=? where name=?",
+                            r.getLink(), r.getCategory(), r.getAlias(), r.getScore(), key);
                 } else{
-                    DbHelper.runUpdate(conn, "update dragon_restaurant set link='%s',category='%s'',score=%s where name='%s'",
-                            r.getLink(),r.getCategory(), r.getScore(), key);
+                    DbHelper.runUpdate2(conn, "update dragon_restaurant set link=?,category=?,score=? where name=?",
+                            r.getLink(), r.getCategory(), r.getScore(), key);
                 }
 
             } else {
@@ -83,7 +83,7 @@ public class EatBean implements Eat {
 
                 logger.debug("Add: " + Thread.currentThread().getId());
 
-                DbHelper.runUpdate(conn, "insert into dragon_restaurant (name,link,factor,score,id,category,alias) VALUES('%s','%s',%s,%s,%s,'%s','%s')",
+                DbHelper.runUpdate2(conn, "insert into dragon_restaurant (name,link,factor,score,id,category,alias) VALUES(?,?,?,?,?,?,?)",
                         key, r.getLink(), r.getFactor(), r.getScore(), id, r.getCategory(), StringUtils.isNotBlank(r.getAlias()) ? r.getAlias() : key);
             }
 
@@ -106,17 +106,17 @@ public class EatBean implements Eat {
     public Long saveUser(User u) {
 
         String key = u.getEmail();
-        int cnt = DbHelper.runUpdate(null, "update dragon_user set subscribed=%s, name='%s' where email='%s'",
+        int cnt = DbHelper.runUpdate2(null, "update dragon_user set subscribed=?, name=? where email=?",
                 u.getSubscribed(), u.getName(), key);
 
-        Long id = DbHelper.runWithSingleResult("select id from dragon_user where email ='" + key + "'", null);
+        Long id = DbHelper.runWithSingleResult2(null, "select id from dragon_user where email = ?", key);
 
         if (cnt > 0) {
             return id;
         }
 
         id = getNextId(null);
-        DbHelper.runUpdate(null, "insert into dragon_user (id,email,subscribed,name) VALUES(%s,'%s',%s,'%s')",
+        DbHelper.runUpdate2(null, "insert into dragon_user (id,email,subscribed,name) VALUES(?,?,?,?)",
                 id, key, u.getSubscribed(), u.getName());
 
         return id;
@@ -131,13 +131,13 @@ public class EatBean implements Eat {
 
         logger.info(email + (sub ? " subing..." : " unsub..."));
 
-        int cnt = DbHelper.runUpdate(null, "update dragon_user set subscribed = %s where email = '%s'", sub, email);
+        int cnt = DbHelper.runUpdate2(null, "update dragon_user set subscribed = ? where email = ?", sub, email);
 
         if (cnt > 0) {
             return true;
         }
 
-        cnt = DbHelper.runUpdate(null, "insert into dragon_user (id,email,subscribed,name) VALUES(%s,'%s',%s,'%s')",
+        cnt = DbHelper.runUpdate2(null, "insert into dragon_user (id,email,subscribed,name) VALUES(?,?,?,?)",
                 getNextId(null), email, sub, email.split("@")[0]);
 
         return cnt > 0;
@@ -145,6 +145,8 @@ public class EatBean implements Eat {
 
     //Not thread safe
     public Boolean vote(Vote v) {
+
+        Long t1 = System.currentTimeMillis();
 
         Long recId = v.getRecId();
         Record rec = getRecord(recId);
@@ -160,7 +162,13 @@ public class EatBean implements Eat {
             return false;
         }
 
+        Long t2 = System.currentTimeMillis();
+        logger.debug("getRec takes: " + (t2 - t1));
+
         saveVote(v, null);
+
+        Long t3 = System.currentTimeMillis();
+        logger.debug("saveVote takes: " + (t3 - t2));
 
         if (v.getResult() == Vote.Result.killme) {
 
@@ -173,6 +181,7 @@ public class EatBean implements Eat {
                     return false;
                 }
                 Long t4 = System.currentTimeMillis();
+                logger.debug("saveRecord takes: " + (t4 - t3));
 
                 //re-pickup
                 sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "表示打死都不去。");
@@ -210,14 +219,22 @@ public class EatBean implements Eat {
 
     public Restaurant pickRestaurant(String condition) {
 
+        Long t1 = System.currentTimeMillis();
+
         List<Restaurant> list = getRestaurants(condition);
         if (list == null || list.size() == 0) {
             return null;
         }
 
+        Long t2 = System.currentTimeMillis();
+        logger.debug("getRestaurants takes: " + (t2 - t1));
+
         Map<String, Stat> ss = stat();
         long totalWeight = 0;
         Long preId = DbHelper.runWithSingleResult("select res_id from dragon_record order by id desc limit 1", null);
+
+        Long t3 = System.currentTimeMillis();
+        logger.debug("stat takes: " + (t3 - t2));
 
         for (Restaurant r : list) {
             if (preId != null && preId.equals(r.getId()) && list.size() > 1) {
@@ -236,6 +253,8 @@ public class EatBean implements Eat {
             }
 
             if (pos <= selected && selected < pos + getWeight(ss, r)) {
+                Long t4 = System.currentTimeMillis();
+                logger.debug("pick up takes: " + (t4 - t3));
                 return r;
             }
             pos += getWeight(ss, r);
@@ -294,7 +313,7 @@ public class EatBean implements Eat {
             ResultSet rs = st.executeQuery(
                     "select res.name,res.factor,res.score,v.vote,count(*) from dragon_restaurant res " +
                             "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
-                            "group by res.name,res.factor,res.score,v.vote");
+                            "group by res.name,res.factor,res.score,v.vote order by count(*)");
             while (rs.next()) {
                 String name = rs.getString(1);
                 int factor = rs.getInt(2);
@@ -322,7 +341,9 @@ public class EatBean implements Eat {
                     s.setVetoed(s.getVetoed() + cnt);
                 }
                 if(vr != null){
-                    s.setScore(s.getScore() + vr.getScore() * cnt);
+                    s.setScore(s.getRawScore() + vr.getScore() * cnt);
+                } else {
+                    s.setScore(s.getRawScore() + cnt/s.getFactor());
                 }
             }
         } catch (Exception e) {
@@ -366,18 +387,18 @@ public class EatBean implements Eat {
 
         if (r.getId() == null || r.getId() <= 0) {
             Long id = getNextId(null);
-            DbHelper.runUpdate(null, "insert into dragon_record (id,res_id,go_time) VALUES(%s,'%s',%s)",
+            DbHelper.runUpdate2(null, "insert into dragon_record (id,res_id,go_time) VALUES(?,?,?)",
                     id, r.getResid(), System.currentTimeMillis());
             return id;
         } else {
-            DbHelper.runUpdate(null, "update dragon_record set veto=%s where id=%s", r.getVeto(), r.getId());
+            DbHelper.runUpdate2(null, "update dragon_record set veto=? where id=?", r.getVeto(), r.getId());
             return r.getId();
         }
     }
 
     @Override
     public String saveSecret(String key, String value) {
-        String name = DbHelper.runWithSingleResult("select name from dragon_secret where name ='" + key + "'", null);
+        String name = DbHelper.runWithSingleResult2(null, "select name from dragon_secret where name =?", key);
         String custKey = getOrCreateKey();
         String enValue = null;
         try {
@@ -388,9 +409,9 @@ public class EatBean implements Eat {
         }
 
         if(name == null) {
-            DbHelper.runUpdate(null, "insert into dragon_secret (name,value) VALUES('%s','%s')", key, enValue);
+            DbHelper.runUpdate2(null, "insert into dragon_secret (name,value) VALUES(?,?)", key, enValue);
         } else {
-            DbHelper.runUpdate(null, "update dragon_secret set value='%s' where name='%s'", enValue, key);
+            DbHelper.runUpdate2(null, "update dragon_secret set value=? where name=?", enValue, key);
         }
 
         return enValue;
@@ -398,7 +419,7 @@ public class EatBean implements Eat {
 
     @Override
     public String getSecret(String key) {
-        String enValue = DbHelper.runWithSingleResult("select value from dragon_secret where name ='" + key + "'", null);
+        String enValue = DbHelper.runWithSingleResult2(null, "select value from dragon_secret where name =?", key);
 
         if(enValue == null){
             return null;
@@ -431,7 +452,7 @@ public class EatBean implements Eat {
             logger.error("", e);
         }
         String strKey = CryptoUtils.secretKeyToString(secretKey);
-        DbHelper.runUpdate(null, "insert into dragon_secret (name,value) VALUES('%s','%s')", KEY, strKey);
+        DbHelper.runUpdate2(null, "insert into dragon_secret (name,value) VALUES(?,?)", KEY, strKey);
 
         return strKey;
     }
@@ -524,15 +545,15 @@ public class EatBean implements Eat {
                 conn = DbHelper.getConn();
             }
 
-            Object obj = DbHelper.runWithSingleResult("select vote from dragon_vote where email ='" + mail + "' and rec_id =" + rid, conn);
+            Object obj = DbHelper.runWithSingleResult2(conn, "select vote from dragon_vote where email = ? and rec_id =?", mail, rid);
             if (obj != null) {
                 if (res != (Integer) obj) {
-                    DbHelper.runUpdate(conn, "update dragon_vote set vote=%s where email='%s' and rec_id=%s", res, mail, rid);
+                    DbHelper.runUpdate2(conn, "update dragon_vote set vote=? where email=? and rec_id=?", res, mail, rid);
                 } else {
                     return false;
                 }
             } else {
-                DbHelper.runUpdate(conn, "insert into dragon_vote (rec_id,vote,email) VALUES(%s,'%s','%s')", rid, res, mail);
+                DbHelper.runUpdate2(conn, "insert into dragon_vote (rec_id,vote,email) VALUES(?,?,?)", rid, res, mail);
             }
         } catch (Exception e) {
             logger.error("", e);
