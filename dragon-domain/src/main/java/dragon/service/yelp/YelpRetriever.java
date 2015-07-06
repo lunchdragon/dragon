@@ -84,7 +84,6 @@ public class YelpRetriever {
                     boolean excluded = reviews < 100;
                     for (String ex : exs) {
                         if (cats.contains(ex)) {
-                            logger.info(name + " excluded");
                             excluded = true;
                             break;
                         }
@@ -94,6 +93,7 @@ public class YelpRetriever {
                     }
 
                     if (excluded) {
+                        logger.info(name + " excluded.");
                         continue;
                     }
 

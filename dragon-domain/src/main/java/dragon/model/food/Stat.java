@@ -86,7 +86,7 @@ public class Stat {
 
     @Override
     public String toString() {
-        return "name: " + name +
+        return "Name: " + name +
                 ", factor: " + factor +
                 ", score: " + score +
                 ", selected: " + selected +

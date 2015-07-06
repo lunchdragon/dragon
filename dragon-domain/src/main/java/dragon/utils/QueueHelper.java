@@ -167,8 +167,8 @@ public class QueueHelper {
     public void sendMsg() throws JMSException {
         if (messageProducer != null) {
             messageProducer.send(message);
-            messageProducer.close();
-            messageProducer = null;
+        } else {
+            logger.warn("MessageProducer not found.");
         }
     }
 
