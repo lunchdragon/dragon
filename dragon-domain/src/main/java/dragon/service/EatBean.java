@@ -27,6 +27,7 @@ public class EatBean implements Eat {
 
     static Log logger = LogFactory.getLog(EatBean.class);
     static final String KEY = "KEY";
+    static final Integer SELECTED_FACTOR = 3;//the more the quicker to get points by visiting count
 
     public int importRestaurants(String csv) {
         List<String[]> data = new ArrayList<String[]>();
@@ -330,7 +331,6 @@ public class EatBean implements Eat {
                     s = ret.get(name);
                 }
 
-                s.setSelected(s.getSelected() + cnt);
                 if (vr == Vote.Result.dislike) {
                     s.setDisliked(s.getDisliked() + cnt);
                 }
@@ -343,7 +343,17 @@ public class EatBean implements Eat {
                 if(vr != null){
                     s.setScore(s.getRawScore() + vr.getScore() * cnt);
                 } else {
-                    s.setScore(s.getRawScore() + cnt/s.getFactor());
+                    s.setScore(s.getRawScore() + cnt * SELECTED_FACTOR/s.getFactor());
+                }
+            }
+
+            rs = st.executeQuery("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id group by res.name");
+            while (rs.next()){
+                String name = rs.getString(1);
+                int cnt = rs.getInt(2);
+
+                if(ret.containsKey(name)){
+                    ret.get(name).setSelected(cnt);
                 }
             }
         } catch (Exception e) {
@@ -375,10 +385,11 @@ public class EatBean implements Eat {
 
         String url = "http://" + server + ":" + port + "/dragon/rest/eat/";
 
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱</a>").append("<br>");
-        sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("一般</a>").append("<br>");
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a><br><br>");
-        sb.append("<a href=\'").append(url + "unsub?mail=" + mail).append("\'/>").append("取关</a>").append("<br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱 ☺</a>").append("<br>");
+        sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("一般 ☹</a>").append("<br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a>")
+                .append(" (不搭伙的求别闹:( )").append("<br><br>");
+        sb.append("<a href=\'").append(url + "unsub?mail=" + mail).append("\'/>").append("取关!</a>").append("<br>");
 
         return sb.toString();
     }
