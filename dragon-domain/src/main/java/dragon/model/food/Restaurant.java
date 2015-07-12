@@ -8,8 +8,8 @@ import org.apache.commons.lang.StringUtils;
 public class Restaurant {
     String name;
     String link;
-    int factor = 5;//1-20
-    int score = 20;//0-100
+    int factor = 5;//1-30
+    int score = 20;//0-1000
     Long id;
     String alias;
     String category;
@@ -90,8 +90,8 @@ public class Restaurant {
         if(factor < 1){
             factor = 1;
         }
-        if(factor > 20){
-            factor = 20;
+        if(factor > 30){
+            factor = 30;
         }
         this.factor = factor;
     }
@@ -100,8 +100,8 @@ public class Restaurant {
         if(score < 1){
             score = 1;
         }
-        if(score > 100){
-            score = 100;
+        if(score > 1000){
+            score = 1000;
         }
         return score;
     }
@@ -110,8 +110,8 @@ public class Restaurant {
         if(score < 1){
             score = 1;
         }
-        if(score > 100){
-            score = 100;
+        if(score > 1000){
+            score = 1000;
         }
         this.score = score;
     }

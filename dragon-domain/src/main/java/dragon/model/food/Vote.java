@@ -32,6 +32,15 @@ public class Vote {
         this.result = result;
     }
 
+    @Override
+    public String toString() {
+        return "Vote{" +
+                "email='" + email + '\'' +
+                ", recId=" + recId +
+                ", result=" + result +
+                '}';
+    }
+
     public static enum Result {
         killme(-2),
         dislike(-1),

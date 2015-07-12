@@ -30,7 +30,7 @@ public class eatBeanTest {
     public static void init(){
         ConfigHelper.instance();
         for(int i = 0; i < 10; i++){
-            Restaurant r = new Restaurant("test" + i, "", 2, 5, null, "");
+            Restaurant r = new Restaurant("test" + i, "", 2, 20, null, "");
             f.saveRestaurant(r, null);
         }
     }
@@ -81,9 +81,9 @@ public class eatBeanTest {
             DbHelper.closeConn(conn);
         }
 
-        Map<String, Stat> ret = f.stat();
+        Map<String, Stat> ret = f.stat(0);
 
-        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
         for (Stat s : ret.values()) {
             System.out.println(s.toPrintString());
         }
@@ -109,9 +109,30 @@ public class eatBeanTest {
     public void testStat()  {
         System.out.println("testStat...");
 
-        Map<String, Stat> ret = f.stat();
+        Map<String, Stat> ret = f.stat(0);
 
-        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "selected", "liked", "disliked", "vetoed");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
+        for (Stat s : ret.values()) {
+            System.out.println(s.toPrintString());
+        }
+    }
+
+    @Test
+    public void testStat2()  {
+        System.out.println("testStat2...");
+
+        Map<String, Stat> ret = f.stat2(7);
+
+        System.out.println("------------ Last Week ------------");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
+        for (Stat s : ret.values()) {
+            System.out.println(s.toPrintString());
+        }
+
+        ret = f.stat2(30);
+
+        System.out.println("------------ Last Month ------------");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
         for (Stat s : ret.values()) {
             System.out.println(s.toPrintString());
         }

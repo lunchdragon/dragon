@@ -14,3 +14,4 @@ location=95035
 category=chinese,japanese,taiwanese,korean
 exclude=indian,thai
 distance=4200
+reviews=90

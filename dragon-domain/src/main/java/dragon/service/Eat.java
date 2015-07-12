@@ -20,8 +20,10 @@ public interface Eat {
     Boolean subscribe(String email, boolean sub);
     Boolean vote(Vote v);
     void sendLunchEmail(String reason);
-    Map<String, Stat> stat();
+    Map<String, Stat> stat(long exId);
+    Map<String, Stat> stat2(int days);
     Long saveRecord(Record r);
     String saveSecret(String key, String value);
     String getSecret(String key);
+    String getMails();
 }

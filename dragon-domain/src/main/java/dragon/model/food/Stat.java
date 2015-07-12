@@ -10,7 +10,7 @@ public class Stat {
     private int vetoed = 0;
     private int factor;
     private int score;
-    private int selected = 0;
+    private int visited = 0;
 
     public Stat(String name, int factor, int score) {
         this.name = name;
@@ -58,16 +58,16 @@ public class Stat {
         this.factor = factor;
     }
 
-    public int getRawScore() {
+    public int getScore() {
         return score;
     }
 
-    public int getScore() {
+    public int getPosScore() {
         if(score < 1){
             score = 1;
         }
-        if(score > 100){
-            score = 100;
+        if(score > 1000){
+            score = 1000;
         }
         return score;
     }
@@ -76,12 +76,12 @@ public class Stat {
         this.score = score;
     }
 
-    public int getSelected() {
-        return selected;
+    public int getVisited() {
+        return visited;
     }
 
-    public void setSelected(int selected) {
-        this.selected = selected;
+    public void setVisited(int visited) {
+        this.visited = visited;
     }
 
     @Override
@@ -89,14 +89,14 @@ public class Stat {
         return "Name: " + name +
                 ", factor: " + factor +
                 ", score: " + score +
-                ", selected: " + selected +
+                ", visited: " + visited +
                 ", liked: " + liked +
                 ", disliked: " + disliked +
                 ", vetoed: " + vetoed;
     }
 
     public String toPrintString() {
-        return String.format("%-35s%-10s%-10s%-10s%-10s%-10s%-10s", name, getFactor(), getScore(), getSelected(), getLiked(), getDisliked(), getVetoed());
+        return String.format("%-35s%-10s%-10s%-10s%-10s%-10s%-10s", name, getFactor(), getScore(), getVisited(), getLiked(), getDisliked(), getVetoed());
     }
 
 }

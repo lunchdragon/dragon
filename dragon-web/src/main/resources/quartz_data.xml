@@ -22,4 +22,20 @@
         </trigger>
     </schedule>
 
+    <schedule>
+        <job>
+            <name>WeeklyJob</name>
+            <job-class>dragon.job.WeeklyJob</job-class>
+            <durability>true</durability>
+            <recover>false</recover>
+        </job>
+        <trigger>
+            <cron>
+                <name>WeeklyTrigger</name>
+                <job-name>WeeklyJob</job-name>
+                <cron-expression>0 30 11 ? * SAT *</cron-expression>
+            </cron>
+        </trigger>
+    </schedule>
+
 </job-scheduling-data>

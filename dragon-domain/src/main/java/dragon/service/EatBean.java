@@ -149,6 +149,8 @@ public class EatBean implements Eat {
 
         Long t1 = System.currentTimeMillis();
 
+        logger.info(v.toString());
+
         Long recId = v.getRecId();
         Record rec = getRecord(recId);
         if (rec == null) {
@@ -188,7 +190,7 @@ public class EatBean implements Eat {
                 sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "表示打死都不去。");
 
                 Long t5 = System.currentTimeMillis();
-                logger.info("Email takes: " + (t5 - t4));
+                logger.debug("Email takes: " + (t5 - t4));
             } else {
                 logger.info("Already vetoed or time passed.");
                 return false;
@@ -230,7 +232,7 @@ public class EatBean implements Eat {
         Long t2 = System.currentTimeMillis();
         logger.debug("getRestaurants takes: " + (t2 - t1));
 
-        Map<String, Stat> ss = stat();
+        Map<String, Stat> ss = stat(0);
         long totalWeight = 0;
         Long preId = DbHelper.runWithSingleResult("select res_id from dragon_record order by id desc limit 1", null);
 
@@ -256,6 +258,7 @@ public class EatBean implements Eat {
             if (pos <= selected && selected < pos + getWeight(ss, r)) {
                 Long t4 = System.currentTimeMillis();
                 logger.debug("pick up takes: " + (t4 - t3));
+                logger.info("Picked up: " + r.getName());
                 return r;
             }
             pos += getWeight(ss, r);
@@ -304,7 +307,7 @@ public class EatBean implements Eat {
         }
     }
 
-    public Map<String, Stat> stat() {
+    public Map<String, Stat> stat(long exId) {
         Connection conn = null;
         Map<String, Stat> ret = new HashMap<String, Stat>();
 
@@ -314,7 +317,7 @@ public class EatBean implements Eat {
             ResultSet rs = st.executeQuery(
                     "select res.name,res.factor,res.score,v.vote,count(*) from dragon_restaurant res " +
                             "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
-                            "group by res.name,res.factor,res.score,v.vote order by count(*)");
+                            " group by res.name,res.factor,res.score,v.vote order by count(*)");
             while (rs.next()) {
                 String name = rs.getString(1);
                 int factor = rs.getInt(2);
@@ -340,22 +343,97 @@ public class EatBean implements Eat {
                 if (vr == Vote.Result.killme) {
                     s.setVetoed(s.getVetoed() + cnt);
                 }
-                if(vr != null){
-                    s.setScore(s.getRawScore() + vr.getScore() * cnt);
-                } else {
-                    s.setScore(s.getRawScore() + cnt * SELECTED_FACTOR/s.getFactor());
+                if(vr != null) {
+                    s.setScore(s.getScore() + vr.getScore() * cnt);
                 }
             }
 
-            rs = st.executeQuery("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id group by res.name");
+            rs = st.executeQuery("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id " +
+                    "where r.veto = false and r.id <> " + exId + " group by res.name");
             while (rs.next()){
                 String name = rs.getString(1);
                 int cnt = rs.getInt(2);
 
                 if(ret.containsKey(name)){
-                    ret.get(name).setSelected(cnt);
+                    Stat s = ret.get(name);
+                    s.setVisited(cnt);
+                    s.setScore(s.getScore() + cnt * SELECTED_FACTOR / s.getFactor());
                 }
             }
+
+            ValueComparator bvc =  new ValueComparator(ret);
+            Map<String, Stat> sorted = new TreeMap<String, Stat>(bvc);
+            sorted.putAll(ret);
+
+            return sorted;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            DbHelper.closeConn(conn);
+        }
+
+        return ret;
+    }
+
+    public Map<String, Stat> stat2(int days) {
+        Connection conn = null;
+        Map<String, Stat> ret = new HashMap<String, Stat>();
+
+        try {
+            conn = DbHelper.getConn();
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery(
+                    "select res.name,res.factor,v.vote,count(*) from dragon_restaurant res " +
+                            "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
+                            "where " + "r.go_time > " + (System.currentTimeMillis() - 1000*3600*24L * days) +
+                            " group by res.name,res.factor,res.score,v.vote order by count(*)");
+            while (rs.next()) {
+                String name = rs.getString(1);
+                int factor = rs.getInt(2);
+                Object vote = rs.getObject(3);
+                int cnt = rs.getInt(4);
+
+                Vote.Result vr = vote == null ? null : Vote.Result.values()[(Integer) vote];
+                Stat s = null;
+                if (!ret.containsKey(name)) {
+                    s = new Stat(name, factor, 0);
+                    ret.put(name, s);
+                } else {
+                    s = ret.get(name);
+                }
+
+                if (vr == Vote.Result.dislike) {
+                    s.setDisliked(s.getDisliked() + cnt);
+                }
+                if (vr == Vote.Result.like) {
+                    s.setLiked(s.getLiked() + cnt);
+                }
+                if (vr == Vote.Result.killme) {
+                    s.setVetoed(s.getVetoed() + cnt);
+                }
+                if(vr != null) {
+                    s.setScore(s.getScore() + vr.getScore() * cnt);
+                }
+            }
+
+            rs = st.executeQuery("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id " +
+                    "where r.veto = false group by res.name");
+            while (rs.next()){
+                String name = rs.getString(1);
+                int cnt = rs.getInt(2);
+
+                if(ret.containsKey(name)){
+                    Stat s = ret.get(name);
+                    s.setVisited(cnt);
+                    s.setScore(s.getScore() + cnt * SELECTED_FACTOR / s.getFactor());
+                }
+            }
+
+            ValueComparator bvc =  new ValueComparator(ret);
+            Map<String, Stat> sorted = new TreeMap<String, Stat>(bvc);
+            sorted.putAll(ret);
+
+            return sorted;
         } catch (Exception e) {
             logger.error(e.getMessage());
         } finally {
@@ -377,9 +455,10 @@ public class EatBean implements Eat {
 
         sb.append(r.getLink()).append(" <br><br>");
 
-        Map<String, Stat> ss = stat();
+        Map<String, Stat> ss = stat(id);
         Stat s = ss.get(r.getName());
         if (s != null) {
+            s.setScore(s.getScore());
             sb.append(s.toString()).append("<br><br>");
         }
 
@@ -577,7 +656,7 @@ public class EatBean implements Eat {
         return true;
     }
 
-    private String getMails() {
+    public String getMails() {
         Connection conn = null;
         try {
             conn = DbHelper.getConn();
@@ -607,8 +686,27 @@ public class EatBean implements Eat {
     private long getWeight(Map<String, Stat> ss, Restaurant r){
         String name = r.getName();
         if(ss.get(name) != null){
-            return r.getWeight() * ss.get(name).getScore();
+            return r.getWeight() * ss.get(name).getPosScore();
         }
         return r.getWeight() * r.getScore();
+    }
+
+    static class ValueComparator implements Comparator<String> {
+
+        Map<String, Stat> base;
+        public ValueComparator(Map<String, Stat> base) {
+            this.base = base;
+        }
+
+        public int compare(String a, String b) {
+            if(base.get(a) == null || base.get(b) == null){
+                return 1;
+            }
+            if (base.get(a).getVisited() >= base.get(b).getVisited()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
     }
 }

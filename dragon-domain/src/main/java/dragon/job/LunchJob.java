@@ -26,7 +26,7 @@ public class LunchJob extends AbstractJob {
     @Override
     protected void processJob(JobExecutionContext ctx) throws JobExecutionException {
 
-        LogFactory.getLog(LunchJob.class).info("job excuting...");
+        LogFactory.getLog(LunchJob.class).info("job executing...");
 
         if(t == null){
             t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);

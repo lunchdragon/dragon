@@ -29,6 +29,7 @@ public class YelpRetriever {
         String category = ConfigHelper.instance().getConfig("category");
         String exclude = ConfigHelper.instance().getConfig("exclude");
         String distance = ConfigHelper.instance().getConfig("distance");
+        String reviews = ConfigHelper.instance().getConfig("reviews");
 
         String[] exs = {};
 
@@ -77,15 +78,17 @@ public class YelpRetriever {
                     JSONObject bo = (JSONObject) obj;
 
                     String cats = bo.get("categories").toString().toLowerCase();
-                    Integer factor = Math.round((Float.parseFloat(bo.get("rating").toString()) * 2));
+                    Integer factor = ((Long)Math.round(Math.pow(2, Float.parseFloat(bo.get("rating").toString())))).intValue(); // 2^rating
                     String name = bo.get("name").toString();
-                    Integer reviews = Integer.parseInt(bo.get("review_count").toString());
+                    Integer rc = Integer.parseInt(bo.get("review_count").toString());
 
-                    boolean excluded = reviews < 100;
-                    for (String ex : exs) {
-                        if (cats.contains(ex)) {
-                            excluded = true;
-                            break;
+                    boolean excluded = rc < Integer.parseInt(reviews);
+                    if(!excluded) {
+                        for (String ex : exs) {
+                            if (cats.contains(ex)) {
+                                excluded = true;
+                                break;
+                            }
                         }
                     }
                     if (name.contains("Express") || name.contains("Tea")) {
@@ -98,19 +101,19 @@ public class YelpRetriever {
                     }
 
                     if (cats.contains("japan") || cats.contains("korea")) {
-                        factor -= 6;
+                        factor -= 10;
                     }
                     if (cats.contains("canton")) {
-                        factor -= 3;
+                        factor -= 5;
                     }
                     if (name.contains("Seafood") || name.contains("BBQ")) {
-                        factor -= 2;
+                        factor -= 5;
                     }
 
                     String cat = cats.split(",")[0];
                     cat = cat.substring(cat.indexOf("\"") + 1, cat.lastIndexOf("\""));
 
-                    Restaurant r = new Restaurant(escape(name), bo.get("url").toString(), factor, 20, "", cat);
+                    Restaurant r = new Restaurant(name, bo.get("url").toString(), factor, 20, "", cat);
                     logger.debug("saving " + r.toString());
 
                     Eat t = new EatBean();
@@ -127,15 +130,6 @@ public class YelpRetriever {
 
         logger.info(String.format("Total : %s businesses found.", cnt));
         return cnt;
-    }
-
-    private static String escape(String value) {
-//        value = StringUtils.replace(value, "&", "&amp;");
-//        value = StringUtils.replace(value, "<", "&lt;");
-//        value = StringUtils.replace(value, ">", "&gt;");
-//        value = StringUtils.replace(value, "'", "&apos;");
-//        value = StringUtils.replace(value, "\"", "&quot;");
-        return value;
     }
 
     public static void main(String[] args) {
