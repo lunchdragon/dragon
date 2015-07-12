@@ -18,7 +18,7 @@ public interface Eat {
     int importRestaurants(String csv);
     Long saveUser(User u);
     Boolean subscribe(String email, boolean sub);
-    Boolean vote(Vote v);
+    Boolean vote(Vote v, Boolean resend);
     void sendLunchEmail(String reason);
     Map<String, Stat> stat(long exId);
     Map<String, Stat> stat2(int days);

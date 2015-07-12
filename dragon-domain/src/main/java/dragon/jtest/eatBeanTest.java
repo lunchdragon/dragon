@@ -30,7 +30,7 @@ public class eatBeanTest {
     public static void init(){
         ConfigHelper.instance();
         for(int i = 0; i < 10; i++){
-            Restaurant r = new Restaurant("test" + i, "", 2, 20, null, "");
+            Restaurant r = new Restaurant("test" + i, "", i, 20, null, "");
             f.saveRestaurant(r, null);
         }
     }
@@ -72,7 +72,7 @@ public class eatBeanTest {
                 v.setEmail("a@b.com");
                 v.setResult(getRandomVote());
                 v.setRecId(id);
-                f.vote(v);
+                f.vote(v, false);
             }
 
         } catch(Exception e){

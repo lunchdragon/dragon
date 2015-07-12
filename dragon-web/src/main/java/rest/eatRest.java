@@ -100,7 +100,7 @@ public class eatRest {
         v.setEmail(mail);
         Eat t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
 
-        if(t.vote(v)){
+        if(t.vote(v, true)){
             return "Succeed!";
         } else{
             return "Error!";

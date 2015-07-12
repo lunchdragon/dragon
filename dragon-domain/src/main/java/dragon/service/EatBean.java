@@ -145,7 +145,7 @@ public class EatBean implements Eat {
     }
 
     //Not thread safe
-    public Boolean vote(Vote v) {
+    public Boolean vote(Vote v, Boolean resend) {
 
         Long t1 = System.currentTimeMillis();
 
@@ -173,7 +173,7 @@ public class EatBean implements Eat {
         Long t3 = System.currentTimeMillis();
         logger.debug("saveVote takes: " + (t3 - t2));
 
-        if (v.getResult() == Vote.Result.killme) {
+        if (v.getResult() == Vote.Result.killme && resend) {
 
             if (!rec.getVeto() && System.currentTimeMillis() - rec.getGoTime() < 1000 * 60 * 60) {//within 1 hour
                 rec.setVeto(true);

@@ -56,7 +56,7 @@ public class WeeklyJob extends AbstractJob {
                 qh.createDeliveryConnection(100);
                 qh.initializeMessage();
                 qh.initializeQueue("jms/EmailQueue");
-                qh.addParameter("title", "");
+                qh.addParameter("title", "Summary");
                 qh.addParameter("body", buildBody());
 
                 for (String mail : mailArr) {
@@ -82,7 +82,7 @@ public class WeeklyJob extends AbstractJob {
         StringBuilder sb = new StringBuilder();
 
         Map<String, Stat> ss = t.stat2(7);
-        sb.append(buildTable(ss, "[Last 30 Days]"));
+        sb.append(buildTable(ss, "[Last 7 Days]"));
 
         ss = t.stat2(30);
         sb.append(buildTable(ss, "[Last 30 Days]"));
