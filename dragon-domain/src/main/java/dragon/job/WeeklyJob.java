@@ -87,7 +87,7 @@ public class WeeklyJob extends AbstractJob {
         ss = t.stat2(30);
         sb.append(buildTable(ss, "[Last 30 Days]"));
 
-        ss = t.stat(0);
+        ss = t.stat(0, true);
         sb.append(buildTable(ss, "[All Time]"));
 
         return sb.toString();

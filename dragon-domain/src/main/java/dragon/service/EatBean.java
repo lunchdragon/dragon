@@ -232,7 +232,7 @@ public class EatBean implements Eat {
         Long t2 = System.currentTimeMillis();
         logger.debug("getRestaurants takes: " + (t2 - t1));
 
-        Map<String, Stat> ss = stat(0);
+        Map<String, Stat> ss = stat(0, false);
         long totalWeight = 0;
         Long preId = DbHelper.runWithSingleResult("select res_id from dragon_record order by id desc limit 1", null);
 
@@ -307,7 +307,7 @@ public class EatBean implements Eat {
         }
     }
 
-    public Map<String, Stat> stat(long exId) {
+    public Map<String, Stat> stat(long exId, Boolean sort) {
         Connection conn = null;
         Map<String, Stat> ret = new HashMap<String, Stat>();
 
@@ -361,11 +361,15 @@ public class EatBean implements Eat {
                 }
             }
 
-            ValueComparator bvc =  new ValueComparator(ret);
-            Map<String, Stat> sorted = new TreeMap<String, Stat>(bvc);
-            sorted.putAll(ret);
+            if(sort) {
+                ValueComparator bvc = new ValueComparator(ret);
+                Map<String, Stat> sorted = new TreeMap<String, Stat>(bvc);
+                sorted.putAll(ret);
 
-            return sorted;
+                return sorted;
+            } else {
+                return ret;
+            }
         } catch (Exception e) {
             logger.error(e.getMessage());
         } finally {
@@ -417,7 +421,7 @@ public class EatBean implements Eat {
             }
 
             rs = st.executeQuery("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id " +
-                    "where r.veto = false group by res.name");
+                    "where r.veto = false and r.go_time > " + (System.currentTimeMillis() - 1000*3600*24L * days) + " group by res.name");
             while (rs.next()){
                 String name = rs.getString(1);
                 int cnt = rs.getInt(2);
@@ -455,7 +459,7 @@ public class EatBean implements Eat {
 
         sb.append(r.getLink()).append(" <br><br>");
 
-        Map<String, Stat> ss = stat(id);
+        Map<String, Stat> ss = stat(id, false);
         Stat s = ss.get(r.getName());
         if (s != null) {
             s.setScore(s.getScore());
@@ -702,11 +706,11 @@ public class EatBean implements Eat {
             if(base.get(a) == null || base.get(b) == null){
                 return 1;
             }
-            if (base.get(a).getVisited() >= base.get(b).getVisited()) {
-                return -1;
-            } else {
-                return 1;
+            int ret = base.get(b).getVisited() - base.get(a).getVisited();
+            if(ret == 0) {
+                return a.compareTo(b);
             }
+            return ret;
         }
     }
 }

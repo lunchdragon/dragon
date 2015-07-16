@@ -49,7 +49,7 @@ public class eatBeanTest {
 
         System.out.println("testPickNVote...");
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 115; i++) {
 //            Restaurant r = f.pickRestaurant(null);
             Restaurant r = f.pickRestaurant("name like 'test%'");
 
@@ -64,7 +64,7 @@ public class eatBeanTest {
         try {
             conn = DbHelper.getConn();
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 5");
+            ResultSet rs = st.executeQuery("select id from dragon_record order by id desc limit 115");
 
             while (rs.next()) {
                 Long id = rs.getLong(1);
@@ -81,7 +81,7 @@ public class eatBeanTest {
             DbHelper.closeConn(conn);
         }
 
-        Map<String, Stat> ret = f.stat(0);
+        Map<String, Stat> ret = f.stat(0, true);
 
         System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
         for (Stat s : ret.values()) {
@@ -109,7 +109,7 @@ public class eatBeanTest {
     public void testStat()  {
         System.out.println("testStat...");
 
-        Map<String, Stat> ret = f.stat(0);
+        Map<String, Stat> ret = f.stat(0, true);
 
         System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
         for (Stat s : ret.values()) {
@@ -124,7 +124,7 @@ public class eatBeanTest {
         Map<String, Stat> ret = f.stat2(7);
 
         System.out.println("------------ Last Week ------------");
-        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
         for (Stat s : ret.values()) {
             System.out.println(s.toPrintString());
         }
@@ -132,7 +132,7 @@ public class eatBeanTest {
         ret = f.stat2(30);
 
         System.out.println("------------ Last Month ------------");
-        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
+        System.out.printf("%-35s%-10s%-10s%-10s%-10s%-10s%-10s\n", "name", "factor", "score", "visited", "liked", "disliked", "vetoed");
         for (Stat s : ret.values()) {
             System.out.println(s.toPrintString());
         }
