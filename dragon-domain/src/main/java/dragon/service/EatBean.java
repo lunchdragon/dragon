@@ -27,7 +27,6 @@ public class EatBean implements Eat {
 
     static Log logger = LogFactory.getLog(EatBean.class);
     static final String KEY = "KEY";
-    static final Integer SELECTED_FACTOR = 3;//the more the quicker to get points by visiting count
 
     public int importRestaurants(String csv) {
         List<String[]> data = new ArrayList<String[]>();
@@ -360,7 +359,7 @@ public class EatBean implements Eat {
                 if(ret.containsKey(name)){
                     Stat s = ret.get(name);
                     s.setVisited(cnt);
-                    s.setScore(s.getScore() + cnt * SELECTED_FACTOR / s.getFactor());
+                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.sqrt(s.getFactor())));
                 }
             }
 
@@ -432,7 +431,7 @@ public class EatBean implements Eat {
                 if(ret.containsKey(name)){
                     Stat s = ret.get(name);
                     s.setVisited(cnt);
-                    s.setScore(s.getScore() + cnt / (int) Math.round(Math.sqrt(s.getFactor())));
+                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.sqrt(s.getFactor())));
                 }
             }
 
