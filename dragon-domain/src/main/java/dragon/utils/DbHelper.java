@@ -7,6 +7,8 @@ import org.apache.commons.logging.LogFactory;
 
 import java.beans.PropertyVetoException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by lin.cheng on 6/16/15.
@@ -118,6 +120,29 @@ public class DbHelper {
             }
         }
         return null;
+    }
+
+    public static <T> List<T> getFirstColumnList(Connection conn, String sql, Object... params){
+        boolean reuse = conn != null;//Remember to close connection outside
+        List<T> ret = new ArrayList<T>();
+        try {
+            if(!reuse){
+                conn = DbHelper.getConn();
+            }
+            PreparedStatement st = conn.prepareStatement(sql);
+            setParameters(st, params);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()){
+                ret.add((T) rs.getObject(1));//First selected column only
+            }
+        } catch (Exception e){
+            logger.error("", e);
+        } finally {
+            if(!reuse){
+                closeConn(conn);
+            }
+        }
+        return ret;
     }
 
     public static int runUpdate(Connection conn, String sqlFmt, Object ... params){

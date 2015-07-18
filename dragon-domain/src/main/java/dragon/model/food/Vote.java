@@ -42,9 +42,9 @@ public class Vote {
     }
 
     public static enum Result {
-        killme(-1),
+        killme(-2),
         dislike(-1),
-        like(1);
+        like(2);
 
         int score;
 

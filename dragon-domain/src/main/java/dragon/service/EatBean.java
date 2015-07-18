@@ -226,6 +226,7 @@ public class EatBean implements Eat {
 
         List<Restaurant> list = getRestaurants(condition);
         if (list == null || list.size() == 0) {
+            logger.info("Restaurant not found.");
             return null;
         }
 
@@ -234,13 +235,13 @@ public class EatBean implements Eat {
 
         Map<String, Stat> ss = stat(0, false);
         long totalWeight = 0;
-        Long preId = DbHelper.runWithSingleResult("select res_id from dragon_record order by id desc limit 1", null);
+        List<Long> preIds = DbHelper.getFirstColumnList(null, "select distinct res_id,id from dragon_record order by id desc limit ?", 3);
 
         Long t3 = System.currentTimeMillis();
         logger.debug("stat takes: " + (t3 - t2));
 
         for (Restaurant r : list) {
-            if (preId != null && preId.equals(r.getId()) && list.size() > 1) {
+            if (preIds.contains(r.getId()) && list.size() > preIds.size()) {
                 continue;
             }
             totalWeight += getWeight(ss, r);
@@ -251,7 +252,8 @@ public class EatBean implements Eat {
         long pos = 0;
         for (Restaurant r : list) {
 
-            if (preId != null && preId.equals(r.getId()) && list.size() > 1) {
+            if (preIds.contains(r.getId()) && list.size() > preIds.size()) {
+                logger.info(r.getName() + " excluded.");
                 continue;
             }
 
@@ -264,6 +266,7 @@ public class EatBean implements Eat {
             pos += getWeight(ss, r);
         }
 
+        logger.info("Not able to found a restaurant.");
         return null;
     }
 
@@ -429,7 +432,7 @@ public class EatBean implements Eat {
                 if(ret.containsKey(name)){
                     Stat s = ret.get(name);
                     s.setVisited(cnt);
-                    s.setScore(s.getScore() + cnt * SELECTED_FACTOR / s.getFactor());
+                    s.setScore(s.getScore() + cnt / (int) Math.round(Math.sqrt(s.getFactor())));
                 }
             }
 
