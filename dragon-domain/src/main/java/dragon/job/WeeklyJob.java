@@ -1,16 +1,17 @@
 package dragon.job;
 
 import dragon.model.food.Stat;
-import dragon.service.Eat;
-import dragon.service.EatBean;
+import dragon.service.BizIntf;
+import dragon.service.BizBean;
 import dragon.utils.BeanFinder;
+import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,13 +21,13 @@ public class WeeklyJob extends AbstractJob {
 
     static Log logger = LogFactory.getLog(WeeklyJob.class);
 
-    Eat t = null;
+    BizIntf t = null;
 
     public WeeklyJob() {
         super();
     }
 
-    public WeeklyJob(Eat t) {
+    public WeeklyJob(BizIntf t) {
         super();
         this.t = t;
     }
@@ -37,31 +38,40 @@ public class WeeklyJob extends AbstractJob {
         logger.info("job executing...");
 
         if(t == null){
-            t = BeanFinder.getInstance().getLocalSessionBean(EatBean.class);
+            t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         }
 
-        send();
+        List<Long> gids = DbHelper.getFirstColumnList(null, "select id from dragon_group where active=true");
+        for(Long gid:gids){
+            send(gid);
+        }
     }
 
-    public void send() {
+    public void send(Long gid) {
 
-        String mails = t.getMails();
+        logger.info("Sending weekly mail for: " + gid);
 
-        if (StringUtils.isNotEmpty(mails)) {
+        List<String> mails = t.getMails(gid);
 
-            String[] mailArr = mails.split(",");
+        if (mails != null && mails.size()>0) {
+
+            logger.info("Valid mails found.");
+
+            String gname = DbHelper.runWithSingleResult2(null, "select alias from dragon_group where id=?", gid);
+
             QueueHelper qh = new QueueHelper();
 
             try {
                 qh.createDeliveryConnection(100);
                 qh.initializeMessage();
                 qh.initializeQueue("jms/EmailQueue");
-                qh.addParameter("title", "Summary");
-                qh.addParameter("body", buildBody());
+                qh.addParameter("title", "[" + gname + "] " + "Summary");
+                qh.addParameter("body", buildBody(gid));
 
-                for (String mail : mailArr) {
+                for (String mail : mails) {
                     qh.addParameter("to", mail);
                     qh.sendMsg();
+                    logger.info("Msg sent to queue:" + gname + " -> " + mail);
                 }
             } catch (Exception e) {
                 logger.error("", e);
@@ -77,17 +87,17 @@ public class WeeklyJob extends AbstractJob {
         }
     }
 
-    private String buildBody(){
+    private String buildBody(Long gid){
 
         StringBuilder sb = new StringBuilder();
 
-        Map<String, Stat> ss = t.stat2(7);
+        Map<String, Stat> ss = t.stat2(gid, 7);
         sb.append(buildTable(ss, "[Last 7 Days]"));
 
-        ss = t.stat2(30);
+        ss = t.stat2(gid, 30);
         sb.append(buildTable(ss, "[Last 30 Days]"));
 
-        ss = t.stat(0, true);
+        ss = t.stat(gid, 0, true);
         sb.append(buildTable(ss, "[All Time]"));
 
         return sb.toString();
@@ -116,8 +126,8 @@ public class WeeklyJob extends AbstractJob {
     }
 
     public static void main(String[] args){
-        WeeklyJob j = new WeeklyJob(new EatBean());
-        String s = j.buildBody();
+        WeeklyJob j = new WeeklyJob(new BizBean());
+        String s = j.buildBody(0L);
         System.out.println(s);
     }
 }

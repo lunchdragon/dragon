@@ -55,6 +55,12 @@ public class Stat {
     }
 
     public void setFactor(int factor) {
+        if(factor < 1){
+            factor = 1;
+        }
+        if(factor > 30){
+            factor = 30;
+        }
         this.factor = factor;
     }
 
@@ -96,7 +102,8 @@ public class Stat {
     }
 
     public String toPrintString() {
-        return String.format("%-35s%-10s%-10s%-10s%-10s%-10s%-10s", name, getFactor(), getScore(), getVisited(), getLiked(), getDisliked(), getVetoed());
+        return String.format("%-45s%-10s%-10s%-10s%-10s%-10s%-10s", name.substring(0, name.length()<43?name.length():43),
+                getFactor(), getScore(), getVisited(), getLiked(), getDisliked(), getVetoed());
     }
 
 }

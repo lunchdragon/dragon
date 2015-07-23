@@ -1,5 +1,6 @@
 package dragon.service;
 
+import dragon.comm.Pair;
 import dragon.model.food.*;
 
 import javax.ejb.Local;
@@ -11,19 +12,20 @@ import java.util.Map;
  * Created by lin.cheng on 6/1/15.
  */
 @Local
-public interface Eat {
-    Restaurant pickRestaurant(String condition);
+public interface BizIntf {
+    Restaurant pickRestaurant(Long gid);
     List<Restaurant> getRestaurants(String condition);
+    List<Restaurant> getRestaurants(Long gid);
     Long saveRestaurant(Restaurant r, Connection conn);
     int importRestaurants(String csv);
-    Long saveUser(User u);
-    Boolean subscribe(String email, boolean sub);
     Boolean vote(Vote v, Boolean resend);
     void sendLunchEmail(String reason);
-    Map<String, Stat> stat(long exId, Boolean sort);
-    Map<String, Stat> stat2(int days);
+    void sendLunchEmail(String reason, Long gid);
+    Map<String, Stat> stat(long gid, long exId, Boolean sort);
+    Map<String, Stat> stat2(long gid, int days);
     Long saveRecord(Record r);
     String saveSecret(String key, String value);
     String getSecret(String key);
-    String getMails();
+    List<String> getMails(Long gid);
+    Restaurant getRestaurant(Pair<String, Object> p);
 }

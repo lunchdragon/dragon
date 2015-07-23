@@ -8,6 +8,7 @@ public class Record {
     Long resid;
     Long goTime;
     Boolean veto;
+    Long gId;
 
     public Long getId() {
         return id;
@@ -39,5 +40,13 @@ public class Record {
 
     public void setVeto(Boolean veto) {
         this.veto = veto;
+    }
+
+    public Long getgId() {
+        return gId;
+    }
+
+    public void setgId(Long gId) {
+        this.gId = gId;
     }
 }

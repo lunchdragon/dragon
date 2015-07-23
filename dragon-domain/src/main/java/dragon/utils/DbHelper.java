@@ -185,7 +185,12 @@ public class DbHelper {
         }
     }
 
-    private static void setParameters(final PreparedStatement st, Object ... params) throws SQLException {
+    public static Long getNextId(Connection connection) {
+        Long id = DbHelper.runWithSingleResult("select nextval ('dragon_id_sec')", connection);
+        return id;
+    }
+
+    public static void setParameters(final PreparedStatement st, Object ... params) throws SQLException {
         for(int i = 0; i<params.length; i++){
             if (params[i] == null){
                 st.setNull(i+1, Types.NULL);

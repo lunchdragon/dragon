@@ -1,9 +1,13 @@
 package dragon.service;
 
+import dragon.comm.Pair;
 import dragon.comm.Utils;
 import dragon.comm.crypto.CryptoALG;
 import dragon.comm.crypto.CryptoUtils;
-import dragon.model.food.*;
+import dragon.model.food.Record;
+import dragon.model.food.Restaurant;
+import dragon.model.food.Stat;
+import dragon.model.food.Vote;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
@@ -14,19 +18,19 @@ import org.apache.commons.logging.LogFactory;
 import javax.crypto.SecretKey;
 import javax.ejb.Stateless;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 
 /**
  * Created by lin.cheng on 6/1/15.
  */
 @Stateless
-public class EatBean implements Eat {
+public class BizBean implements BizIntf {
 
-    static Log logger = LogFactory.getLog(EatBean.class);
+    static Log logger = LogFactory.getLog(BizBean.class);
     static final String KEY = "KEY";
+    static final Double GRAVITY = 0.7;
+    static final Integer BASE = 20;
 
     public int importRestaurants(String csv) {
         List<String[]> data = new ArrayList<String[]>();
@@ -37,7 +41,7 @@ public class EatBean implements Eat {
         try {
             conn = DbHelper.getConn();
             for (String[] item : data) {
-                Restaurant r = new Restaurant(item[0], item[1], Integer.parseInt(item[2]), Integer.parseInt(item[3]), item[4], item[5]);
+                Restaurant r = new Restaurant(item[0], item[1], Long.parseLong(item[2]), item[4], item[5]);
                 saveRestaurant(r, conn);
             }
         } catch (Exception e) {
@@ -56,6 +60,8 @@ public class EatBean implements Eat {
         boolean reuse = conn != null;//Remember to close connection outside
         Long id = 0L;
 
+        logger.info("Saving biz:" + r.getName());
+
         try {
             if (!reuse) {
                 conn = DbHelper.getConn();
@@ -70,21 +76,22 @@ public class EatBean implements Eat {
             id = DbHelper.runWithSingleResult2(conn, "select id from dragon_restaurant where name =?", key);
 
             if (id != null) {
-                if(StringUtils.isNotBlank(r.getAlias())){
-                    DbHelper.runUpdate2(conn, "update dragon_restaurant set link=?,category=?,alias=?,score=? where name=?",
-                            r.getLink(), r.getCategory(), r.getAlias(), r.getScore(), key);
-                } else{
-                    DbHelper.runUpdate2(conn, "update dragon_restaurant set link=?,category=?,score=? where name=?",
-                            r.getLink(), r.getCategory(), r.getScore(), key);
+                Long exfactor = DbHelper.runWithSingleResult2(conn, "select factor from dragon_restaurant where name =?", key);
+                if(Long.compare(r.getFactor(), exfactor) != 0) {
+                    logger.info("Factor changed:" + r.getName());
+                    DbHelper.runUpdate2(conn, "update dragon_restaurant set factor=? where name=?", r.getFactor(), key);
                 }
-
+                logger.debug("No qualified changes, skip:" + r.getName());
+                //...need to add more if want to be able to update more columns
             } else {
-                id = getNextId(conn);
+                logger.info("Save new:" + r.getName());
+
+                id = DbHelper.getNextId(conn);
 
                 logger.debug("Add: " + Thread.currentThread().getId());
 
-                DbHelper.runUpdate2(conn, "insert into dragon_restaurant (name,link,factor,score,id,category,alias) VALUES(?,?,?,?,?,?,?)",
-                        key, r.getLink(), r.getFactor(), r.getScore(), id, r.getCategory(), StringUtils.isNotBlank(r.getAlias()) ? r.getAlias() : key);
+                DbHelper.runUpdate2(conn, "insert into dragon_restaurant (name,link,factor,id,category,alias) VALUES(?,?,?,?,?,?)",
+                        key, r.getLink(), r.getFactor(), id, r.getCategory(), StringUtils.isNotBlank(r.getAlias()) ? r.getAlias() : key);
             }
 
             conn.commit();
@@ -103,47 +110,6 @@ public class EatBean implements Eat {
     }
 
     //Not thread safe
-    public Long saveUser(User u) {
-
-        String key = u.getEmail();
-        int cnt = DbHelper.runUpdate2(null, "update dragon_user set subscribed=?, name=? where email=?",
-                u.getSubscribed(), u.getName(), key);
-
-        Long id = DbHelper.runWithSingleResult2(null, "select id from dragon_user where email = ?", key);
-
-        if (cnt > 0) {
-            return id;
-        }
-
-        id = getNextId(null);
-        DbHelper.runUpdate2(null, "insert into dragon_user (id,email,subscribed,name) VALUES(?,?,?,?)",
-                id, key, u.getSubscribed(), u.getName());
-
-        return id;
-    }
-
-    //Not thread safe
-    public Boolean subscribe(String email, boolean sub) {
-
-        if (StringUtils.isBlank(email) || !email.contains("@")) {
-            return false;
-        }
-
-        logger.info(email + (sub ? " subing..." : " unsub..."));
-
-        int cnt = DbHelper.runUpdate2(null, "update dragon_user set subscribed = ? where email = ?", sub, email);
-
-        if (cnt > 0) {
-            return true;
-        }
-
-        cnt = DbHelper.runUpdate2(null, "insert into dragon_user (id,email,subscribed,name) VALUES(?,?,?,?)",
-                getNextId(null), email, sub, email.split("@")[0]);
-
-        return cnt > 0;
-    }
-
-    //Not thread safe
     public Boolean vote(Vote v, Boolean resend) {
 
         Long t1 = System.currentTimeMillis();
@@ -158,7 +124,7 @@ public class EatBean implements Eat {
         }
 
         Long resId = rec.getResid();
-        Restaurant res = getRestaurant(resId);
+        Restaurant res = getRestaurant(new Pair<String, Object>("id", resId));
         if (res == null) {
             logger.error("Restaurant not found: " + resId);
             return false;
@@ -186,7 +152,7 @@ public class EatBean implements Eat {
                 logger.debug("saveRecord takes: " + (t4 - t3));
 
                 //re-pickup
-                sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "表示打死都不去。");
+                sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "表示打死都不去。", rec.getgId());
 
                 Long t5 = System.currentTimeMillis();
                 logger.debug("Email takes: " + (t5 - t4));
@@ -208,7 +174,7 @@ public class EatBean implements Eat {
             ResultSet rs = st.executeQuery("select * from dragon_restaurant" + (StringUtils.isBlank(condition) ? "" : " where " + condition));
 
             while (rs.next()) {
-                list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id")
+                list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getLong("factor"), rs.getLong("id")
                 ,rs.getString("alias"), rs.getString("category")));
             }
         } catch (Exception e) {
@@ -219,11 +185,32 @@ public class EatBean implements Eat {
         return list;
     }
 
-    public Restaurant pickRestaurant(String condition) {
+    public List<Restaurant> getRestaurants(Long gid) {
+        Connection conn = null;
+        List<Restaurant> list = new ArrayList<Restaurant>();
+        try {
+            conn = DbHelper.getConn();
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("select r.name,r.link,gr.factor,r.id,r.alias,r.category from dragon_restaurant r,dragon_group g,dragon_group_rest gr " +
+                    "where gr.res_id=r.id and gr.g_id=g.id and g.id=" + gid);
+
+            while (rs.next()) {
+                list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getLong("factor"), rs.getLong("id")
+                        ,rs.getString("alias"), rs.getString("category")));
+            }
+        } catch (Exception e) {
+            logger.error("");
+        } finally {
+            DbHelper.closeConn(conn);
+        }
+        return list;
+    }
+
+    public Restaurant pickRestaurant(Long gid) {
 
         Long t1 = System.currentTimeMillis();
 
-        List<Restaurant> list = getRestaurants(condition);
+        List<Restaurant> list = getRestaurants(gid);
         if (list == null || list.size() == 0) {
             logger.info("Restaurant not found.");
             return null;
@@ -232,9 +219,9 @@ public class EatBean implements Eat {
         Long t2 = System.currentTimeMillis();
         logger.debug("getRestaurants takes: " + (t2 - t1));
 
-        Map<String, Stat> ss = stat(0, false);
+        Map<String, Stat> ss = stat(gid, 0, false);
         long totalWeight = 0;
-        List<Long> preIds = DbHelper.getFirstColumnList(null, "select distinct res_id,id from dragon_record order by id desc limit ?", 3);
+        List<Long> preIds = DbHelper.getFirstColumnList(null, "select distinct res_id,id from dragon_record where g_id=" + gid + " order by id desc limit ?", 3);
 
         Long t3 = System.currentTimeMillis();
         logger.debug("stat takes: " + (t3 - t2));
@@ -252,7 +239,7 @@ public class EatBean implements Eat {
         for (Restaurant r : list) {
 
             if (preIds.contains(r.getId()) && list.size() > preIds.size()) {
-                logger.info(r.getName() + " excluded.");
+                logger.info(r.getName() + " skipped.");
                 continue;
             }
 
@@ -265,35 +252,52 @@ public class EatBean implements Eat {
             pos += getWeight(ss, r);
         }
 
-        logger.info("Not able to found a restaurant.");
+        logger.info("Not able to find a restaurant.");
         return null;
     }
 
-    public void sendLunchEmail(String reason) {
+    public void sendLunchEmail(String reason){
+        List<Long> gids = DbHelper.getFirstColumnList(null, "select id from dragon_group where active=true");
+        for(Long gid:gids){
+            sendLunchEmail(reason, gid);
+        }
+    }
 
-        String mails = getMails();
+    public void sendLunchEmail(String reason, Long gid) {
 
-        if (StringUtils.isNotEmpty(mails)) {
-            Restaurant r = pickRestaurant(null);
-            if (r == null) return;
+        logger.info("Sending lunch mail for: " + gid);
+        List<String> mails = getMails(gid);
+
+        if (mails != null && mails.size() > 0) {
+
+            logger.info("Valid mails found.");
+
+            Restaurant r = pickRestaurant(gid);
+            if (r == null) {
+                logger.info("Biz not found, no email sent.");
+                return;
+            }
 
             Record rec = new Record();
             rec.setResid(r.getId());
+            rec.setgId(gid);
             Long id = saveRecord(rec);
 
-            String[] mailArr = mails.split(",");
+            String gname = DbHelper.runWithSingleResult2(null, "select alias from dragon_group where id=?", gid);
+
             QueueHelper qh = new QueueHelper();
 
             try {
                 qh.createDeliveryConnection(100);
                 qh.initializeMessage();
                 qh.initializeQueue("jms/EmailQueue");
-                qh.addParameter("title", r.getAlias());
+                qh.addParameter("title", "[" + gname + "] " + r.getAlias());
 
-                for (String mail : mailArr) {
+                for (String mail : mails) {
                     qh.addParameter("to", mail);
-                    qh.addParameter("body", buildBody(mail, r, reason, id));
+                    qh.addParameter("body", buildBody(mail, r, reason, id, gid));
                     qh.sendMsg();
+                    logger.info("Msg sent to queue:" + gname + " -> " + mail);
                 }
             } catch (Exception e) {
                 logger.error("", e);
@@ -309,23 +313,24 @@ public class EatBean implements Eat {
         }
     }
 
-    public Map<String, Stat> stat(long exId, Boolean sort) {
+    public Map<String, Stat> stat(long gid, long exId, Boolean sort) {
         Connection conn = null;
         Map<String, Stat> ret = new HashMap<String, Stat>();
 
         try {
             conn = DbHelper.getConn();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(
-                    "select res.name,res.factor,res.score,v.vote,count(*) from dragon_restaurant res " +
-                            "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
-                            " group by res.name,res.factor,res.score,v.vote order by count(*)");
+            PreparedStatement st = conn.prepareStatement("select res.name,res.factor,v.vote,count(*) from dragon_restaurant res " +
+                    "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
+                    "where r.g_id =? group by res.name,res.factor,v.vote order by count(*)");
+            DbHelper.setParameters(st, gid);
+            ResultSet rs = st.executeQuery();
+
             while (rs.next()) {
-                String name = rs.getString(1);
-                int factor = rs.getInt(2);
-                int score = rs.getInt(3);
-                Object vote = rs.getObject(4);
-                int cnt = rs.getInt(5);
+                String name = rs.getString("name");
+                int factor = rs.getInt("factor");
+                int score = BASE;
+                Object vote = rs.getObject("vote");
+                int cnt = rs.getInt("count");
 
                 Vote.Result vr = vote == null ? null : Vote.Result.values()[(Integer) vote];
                 Stat s = null;
@@ -350,18 +355,23 @@ public class EatBean implements Eat {
                 }
             }
 
-            rs = st.executeQuery("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id " +
-                    "where r.veto = false and r.id <> " + exId + " group by res.name");
+            PreparedStatement st2 = conn.prepareStatement("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id " +
+                            "where r.veto = false and r.g_id = ? and r.id <> ? group by res.name");
+            DbHelper.setParameters(st2, gid, exId);
+            rs = st2.executeQuery();
+
             while (rs.next()){
-                String name = rs.getString(1);
-                int cnt = rs.getInt(2);
+                String name = rs.getString("name");
+                int cnt = rs.getInt("count");
 
                 if(ret.containsKey(name)){
                     Stat s = ret.get(name);
                     s.setVisited(cnt);
-                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.sqrt(s.getFactor())));
+                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.pow(s.getFactor(), GRAVITY)));
                 }
             }
+
+            setGroupFactor(conn, gid, ret);
 
             if(sort) {
                 ValueComparator bvc = new ValueComparator(ret);
@@ -381,23 +391,23 @@ public class EatBean implements Eat {
         return ret;
     }
 
-    public Map<String, Stat> stat2(int days) {
+    public Map<String, Stat> stat2(long gid, int days) {
         Connection conn = null;
         Map<String, Stat> ret = new HashMap<String, Stat>();
+        long gotime = System.currentTimeMillis() - 1000*3600*24L * days;
 
         try {
             conn = DbHelper.getConn();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(
-                    "select res.name,res.factor,v.vote,count(*) from dragon_restaurant res " +
-                            "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
-                            "where " + "r.go_time > " + (System.currentTimeMillis() - 1000*3600*24L * days) +
-                            " group by res.name,res.factor,res.score,v.vote order by count(*)");
+            PreparedStatement st = conn.prepareStatement("select res.name,res.factor,v.vote,count(*) from dragon_restaurant res " +
+                    "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
+                    "where r.g_id=? and r.go_time>? group by res.name,res.factor,v.vote order by count(*)");
+            DbHelper.setParameters(st, gid, gotime);
+            ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                String name = rs.getString(1);
-                int factor = rs.getInt(2);
-                Object vote = rs.getObject(3);
-                int cnt = rs.getInt(4);
+                String name = rs.getString("name");
+                int factor = rs.getInt("factor");
+                Object vote = rs.getObject("vote");
+                int cnt = rs.getInt("count");
 
                 Vote.Result vr = vote == null ? null : Vote.Result.values()[(Integer) vote];
                 Stat s = null;
@@ -422,18 +432,23 @@ public class EatBean implements Eat {
                 }
             }
 
-            rs = st.executeQuery("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id " +
-                    "where r.veto = false and r.go_time > " + (System.currentTimeMillis() - 1000*3600*24L * days) + " group by res.name");
+            PreparedStatement st2 = conn.prepareStatement("select res.name,count(*) from dragon_restaurant res inner join dragon_record r on r.res_id=res.id " +
+                    "where r.veto = false and r.g_id =? and r.go_time > ? group by res.name");
+            DbHelper.setParameters(st2, gid, gotime);
+            rs = st2.executeQuery();
+
             while (rs.next()){
-                String name = rs.getString(1);
-                int cnt = rs.getInt(2);
+                String name = rs.getString("name");
+                int cnt = rs.getInt("count");
 
                 if(ret.containsKey(name)){
                     Stat s = ret.get(name);
                     s.setVisited(cnt);
-                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.sqrt(s.getFactor())));
+                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.pow(s.getFactor(), GRAVITY)));
                 }
             }
+
+            setGroupFactor(conn, gid, ret);
 
             ValueComparator bvc =  new ValueComparator(ret);
             Map<String, Stat> sorted = new TreeMap<String, Stat>(bvc);
@@ -449,7 +464,31 @@ public class EatBean implements Eat {
         return ret;
     }
 
-    private String buildBody(String mail, Restaurant r, String reason, Long id) {
+    private void setGroupFactor(Connection conn, long gid, final Map<String, Stat> ss) throws SQLException {
+
+        if(conn == null || ss == null || ss.size() == 0){
+            return;
+        }
+
+        PreparedStatement st = conn.prepareStatement("select r.name,gr.factor from dragon_restaurant r inner join dragon_group_rest gr on r.id=gr.res_id where gr.g_id=?");
+        DbHelper.setParameters(st, gid);
+        ResultSet rs = st.executeQuery();
+
+        while (rs.next()){
+            String name = rs.getString("name");
+            Integer factor = rs.getInt("factor");
+
+            if(ss.containsKey(name)){
+                Stat s = ss.get(name);
+                if(factor != null && factor > 0){
+                    s.setFactor(factor);
+                }
+            }
+        }
+
+    }
+
+    private String buildBody(String mail, Restaurant r, String reason, Long id, Long gid) {
         String server = ConfigHelper.instance().getConfig("server");
         String port = ConfigHelper.instance().getConfig("port");
 
@@ -461,20 +500,20 @@ public class EatBean implements Eat {
 
         sb.append(r.getLink()).append(" <br><br>");
 
-        Map<String, Stat> ss = stat(id, false);
+        Map<String, Stat> ss = stat(gid, id, false);
         Stat s = ss.get(r.getName());
         if (s != null) {
             s.setScore(s.getScore());
             sb.append(s.toString()).append("<br><br>");
         }
 
-        String url = "http://" + server + ":" + port + "/dragon/rest/eat/";
+        String url = "http://" + server + ":" + port + "/dragon/rest/biz/";
 
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱 ☺</a>").append("<br>");
         sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("一般 ☹</a>").append("<br>");
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a>")
                 .append(" (不搭伙的求别闹:( )").append("<br><br>");
-        sb.append("<a href=\'").append(url + "unsub?mail=" + mail).append("\'/>").append("取关!</a>").append("<br>");
+        sb.append("<a href=\'").append(url + "group/unsub?mail=" + mail).append("&gid=").append(gid).append("\'/>").append("取关!</a>").append("<br>");
 
         return sb.toString();
     }
@@ -482,9 +521,9 @@ public class EatBean implements Eat {
     public Long saveRecord(Record r) {
 
         if (r.getId() == null || r.getId() <= 0) {
-            Long id = getNextId(null);
-            DbHelper.runUpdate2(null, "insert into dragon_record (id,res_id,go_time) VALUES(?,?,?)",
-                    id, r.getResid(), System.currentTimeMillis());
+            Long id = DbHelper.getNextId(null);
+            DbHelper.runUpdate2(null, "insert into dragon_record (id,res_id,go_time,g_id) VALUES(?,?,?,?)",
+                    id, r.getResid(), System.currentTimeMillis(), r.getgId());
             return id;
         } else {
             DbHelper.runUpdate2(null, "update dragon_record set veto=? where id=?", r.getVeto(), r.getId());
@@ -494,6 +533,9 @@ public class EatBean implements Eat {
 
     @Override
     public String saveSecret(String key, String value) {
+
+        logger.info("Saving secret:" + key);
+
         String name = DbHelper.runWithSingleResult2(null, "select name from dragon_secret where name =?", key);
         String custKey = getOrCreateKey();
         String enValue = null;
@@ -568,6 +610,7 @@ public class EatBean implements Eat {
                 rec.setVeto(rs.getBoolean("veto"));
                 rec.setResid(rs.getLong("res_id"));
                 rec.setGoTime(rs.getLong("go_time"));
+                rec.setgId(rs.getLong("g_id"));
             }
 
             return rec;
@@ -579,47 +622,22 @@ public class EatBean implements Eat {
         }
     }
 
-    private Restaurant getRestaurant(Long id) {
+    public Restaurant getRestaurant(Pair<String, Object> p) {
         Connection conn = null;
         Restaurant ret = null;
 
         try {
             conn = DbHelper.getConn();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from dragon_restaurant where id = " + id);
+            PreparedStatement st = conn.prepareStatement("select * from dragon_restaurant where " + p.getLeft() + "= ?");
+            DbHelper.setParameters(st, p.getRight());
+            ResultSet rs = st.executeQuery();
 
             if (rs.next()) {
-                ret = new Restaurant(rs.getString("name"), rs.getString("link"), rs.getInt("factor"), rs.getInt("score"), rs.getLong("id")
+                ret = new Restaurant(rs.getString("name"), rs.getString("link"), rs.getLong("factor"), rs.getLong("id")
                         , rs.getString("alias"), rs.getString("category"));
             }
 
             return ret;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return null;
-        } finally {
-            DbHelper.closeConn(conn);
-        }
-    }
-
-    private User getUser(Long uid) {
-        Connection conn = null;
-        User rec = null;
-
-        try {
-            conn = DbHelper.getConn();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from dragon_user where id = " + uid);
-
-            if (rs.next()) {
-                rec = new User();
-                rec.setId(uid);
-                rec.setEmail(rs.getString("email"));
-                rec.setSubscribed(rs.getBoolean("subscribed"));
-                rec.setName(rs.getString("name"));
-            }
-
-            return rec;
         } catch (Exception e) {
             logger.error(e.getMessage());
             return null;
@@ -662,31 +680,9 @@ public class EatBean implements Eat {
         return true;
     }
 
-    public String getMails() {
-        Connection conn = null;
-        try {
-            conn = DbHelper.getConn();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select email from dragon_user where subscribed=true");
-
-            List<String> list = new ArrayList<String>();
-            while (rs.next()) {
-                list.add(rs.getString("email"));
-            }
-
-            return StringUtils.join(list, ",");
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        } finally {
-            DbHelper.closeConn(conn);
-        }
-
-        return "";
-    }
-
-    private Long getNextId(Connection connection) {
-        Long id = DbHelper.runWithSingleResult("select nextval ('dragon_id_sec')", connection);
-        return id;
+    public List<String> getMails(Long gid) {
+        List<String> mails = DbHelper.getFirstColumnList(null, "select u.email from dragon_user u, dragon_group g, dragon_group_user gu where gu.u_id=u.id and gu.g_id=g.id and g.id=?", gid);
+        return mails;
     }
 
     private long getWeight(Map<String, Stat> ss, Restaurant r){
@@ -694,7 +690,7 @@ public class EatBean implements Eat {
         if(ss.get(name) != null){
             return r.getWeight() * ss.get(name).getPosScore();
         }
-        return r.getWeight() * r.getScore();
+        return r.getWeight() * BASE;
     }
 
     static class ValueComparator implements Comparator<String> {

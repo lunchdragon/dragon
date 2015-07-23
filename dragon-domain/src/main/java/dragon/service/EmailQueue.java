@@ -24,7 +24,7 @@ public class EmailQueue {
             String title = msg.getString("title");
             String body = msg.getString("body");
 
-            logger.info("Sending email to " + to);
+            logger.info("Sending email: " + title + " -> " + to);
 
             String server = ConfigHelper.instance().getConfig("mail");
             String port = ConfigHelper.instance().getConfig("mailport");

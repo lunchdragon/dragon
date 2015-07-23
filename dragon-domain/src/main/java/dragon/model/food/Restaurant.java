@@ -8,27 +8,24 @@ import org.apache.commons.lang.StringUtils;
 public class Restaurant {
     String name;
     String link;
-    int factor = 5;//1-30
-    int score = 20;//0-1000
+    Long factor = 5L;//1-30
     Long id;
     String alias;
     String category;
 
-    public Restaurant(String name, String link, int factor, int score, Long id, String alias, String category) {
+    public Restaurant(String name, String link, Long factor, Long id, String alias, String category) {
         this.name = name;
         this.link = link;
         this.factor = factor;
-        this.score = score;
         this.alias = alias;
         this.category = category;
         this.id = id;
     }
 
-    public Restaurant(String name, String link, int factor, int score, String alias, String category) {
+    public Restaurant(String name, String link, Long factor, String alias, String category) {
         this.name = name;
         this.link = link;
         this.factor = factor;
-        this.score = score;
         this.alias = alias;
         this.category = category;
     }
@@ -76,44 +73,24 @@ public class Restaurant {
         this.category = category;
     }
 
-    public int getFactor() {
+    public Long getFactor() {
         if(factor < 1){
-            factor = 1;
+            factor = 1L;
         }
-        if(factor > 20){
-            factor = 20;
+        if(factor > 30){
+            factor = 30L;
         }
         return factor;
     }
 
-    public void setFactor(int factor) {
+    public void setFactor(Long factor) {
         if(factor < 1){
-            factor = 1;
+            factor = 1L;
         }
         if(factor > 30){
-            factor = 30;
+            factor = 30L;
         }
         this.factor = factor;
-    }
-
-    public int getScore() {
-        if(score < 1){
-            score = 1;
-        }
-        if(score > 1000){
-            score = 1000;
-        }
-        return score;
-    }
-
-    public void setScore(int score) {
-        if(score < 1){
-            score = 1;
-        }
-        if(score > 1000){
-            score = 1000;
-        }
-        this.score = score;
     }
 
     public Long getWeight(){
@@ -126,7 +103,6 @@ public class Restaurant {
                 "name: '" + name + '\'' +
                 ", link: '" + link + '\'' +
                 ", factor: " + factor +
-                ", score: " + score +
                 ", alias: " + alias +
                 ", category: " + category +
                 '}';

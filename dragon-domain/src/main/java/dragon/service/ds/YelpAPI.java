@@ -1,4 +1,4 @@
-package dragon.service.yelp;
+package dragon.service.ds;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -157,14 +157,14 @@ public class YelpAPI {
         JSONArray businesses = (JSONArray) response.get("businesses");
         System.out.println(String.format(
                 "%s businesses found ...",
-                businesses.size()));
+                businesses==null ? 0: businesses.size()));
 
-//        for(Object obj : businesses){
-//            JSONObject bo = (JSONObject)obj;
-//            System.out.println(String.format(
-//                    "name: %s; rating: %s; Category: %s",
-//                    bo.get("name"), bo.get("rating"), bo.get("categories")));
-//        }
+        for(Object obj : businesses){
+            JSONObject bo = (JSONObject)obj;
+            System.out.println(String.format(
+                    "name: %s; rating: %s; Category: %s",
+                    bo.get("name"), bo.get("rating"), bo.get("categories")));
+        }
 
         return searchResponseJSON;
     }
@@ -193,11 +193,16 @@ public class YelpAPI {
     public static void main(String[] args) {
         YelpAPICLI yelpApiCli = new YelpAPICLI();
 
-        for(int i = 0; i < 5; i++) {//max = 100
-            yelpApiCli.offset = 20 * i;
+        YelpAPI yelpApi = new YelpAPI();
+
+        for(int i = 0; i < 1; i++) {//max = 100
+            yelpApiCli.offset = 2 * i;
             new JCommander(yelpApiCli, args);
-            YelpAPI yelpApi = new YelpAPI();
             queryAPI(yelpApi, yelpApiCli);
         }
+
+        String businessResponseJSON = yelpApi.searchByBusinessId("chef-yu-hunan-gourmet-sunnyvale");
+        System.out.println(String.format("Result for business \"%s\" found:", "chef-yu-hunan-gourmet-sunnyvale"));
+        System.out.println(businessResponseJSON);
     }
 }

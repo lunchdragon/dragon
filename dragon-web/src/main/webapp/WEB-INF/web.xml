@@ -75,10 +75,17 @@
     </servlet>
 
     <ejb-local-ref>
-        <ejb-ref-name>dragon/EatBean/local</ejb-ref-name>
+        <ejb-ref-name>dragon/BizBean/local</ejb-ref-name>
         <ejb-ref-type>Session</ejb-ref-type>
-        <local>dragon.service.Eat</local>
-        <ejb-link>EatBean</ejb-link>
+        <local>dragon.service.BizIntf</local>
+        <ejb-link>BizBean</ejb-link>
+    </ejb-local-ref>
+
+    <ejb-local-ref>
+        <ejb-ref-name>dragon/GroupBean/local</ejb-ref-name>
+        <ejb-ref-type>Session</ejb-ref-type>
+        <local>dragon.service.GroupIntf</local>
+        <ejb-link>GroupBean</ejb-link>
     </ejb-local-ref>
 
 </web-app>

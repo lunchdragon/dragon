@@ -1,7 +1,7 @@
 package dragon.utils;
 
-import dragon.service.Eat;
-import dragon.service.EatBean;
+import dragon.service.BizIntf;
+import dragon.service.BizBean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -51,7 +51,7 @@ public class ConfigHelper {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(PATH)));
             String line = null;
-            Eat t = new EatBean();
+            BizIntf t = new BizBean();
 
             map.clear();
 
