@@ -190,9 +190,10 @@ public class BizBean implements BizIntf {
         List<Restaurant> list = new ArrayList<Restaurant>();
         try {
             conn = DbHelper.getConn();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select r.name,r.link,gr.factor,r.id,r.alias,r.category from dragon_restaurant r,dragon_group g,dragon_group_rest gr " +
-                    "where gr.res_id=r.id and gr.g_id=g.id and g.id=" + gid);
+            PreparedStatement st = conn.prepareStatement("select r.name,r.link,gr.factor,r.id,r.alias,r.category from dragon_restaurant r,dragon_group g,dragon_group_rest gr " +
+                    "where gr.res_id=r.id and gr.g_id=g.id and g.id=?");
+            DbHelper.setParameters(st, gid);
+            ResultSet rs = st.executeQuery();
 
             while (rs.next()) {
                 list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getLong("factor"), rs.getLong("id")

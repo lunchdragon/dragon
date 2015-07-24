@@ -29,7 +29,7 @@ public class YelpRetriever implements DsRetriever {
     static BizIntf eb = getEb();
     static Log logger = LogFactory.getLog(YelpRetriever.class);
 
-    public String location = ConfigHelper.instance().getConfig("location");
+    public String location = "";//must set by client apps
     public String category = ConfigHelper.instance().getConfig("category");
     public String exclude = ConfigHelper.instance().getConfig("exclude");
     public String distance = ConfigHelper.instance().getConfig("distance");

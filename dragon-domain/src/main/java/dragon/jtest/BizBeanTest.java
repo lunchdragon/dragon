@@ -28,7 +28,7 @@ public class BizBeanTest {
 
     static BizIntf eb = new BizBean();
     static GroupIntf gb = new GroupBean();
-    static Log logger = LogFactory.getLog(BizBean.class);
+    static Log logger = LogFactory.getLog(BizBeanTest.class);
 
     static final String TESTID = "unITtEsT";
 
@@ -47,7 +47,6 @@ public class BizBeanTest {
             User u = new User();
             u.setName(TESTID + "_user" + i);
             u.setEmail(u.getName() + "@aaa.com");
-            u.setSubscribed(true);
             gb.saveUser(u);
 
             int gIndex = i%5;
@@ -215,11 +214,12 @@ public class BizBeanTest {
     public void testSubscribe() {
         System.out.println("testSubscribe...");
         Long gid = DbHelper.runWithSingleResult2(null, "select id from dragon_group where name like ? limit 1", TESTID + "%");
+        String mail = DbHelper.runWithSingleResult2(null, "select email from dragon_user where name like ? limit 1", TESTID + "%");
 
-        Boolean r = gb.subscribe("b@c.com", gid , true);
+        Boolean r = gb.subscribe(mail, gid , true);
         assertTrue(r);
 
-        r = gb.subscribe("b@c.com", gid, false);
+        r = gb.subscribe(mail, gid, false);
         assertTrue(r);
     }
 

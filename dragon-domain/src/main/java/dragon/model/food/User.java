@@ -7,7 +7,14 @@ public class User {
     Long id;
     String name;
     String email;
-    Boolean subscribed;
+
+    public User(String email) {
+        this.email = email;
+        this.name = email.split("@")[0];
+    }
+
+    public User() {
+    }
 
     public Long getId() {
         return id;
@@ -33,11 +40,4 @@ public class User {
         this.email = email;
     }
 
-    public Boolean getSubscribed() {
-        return subscribed;
-    }
-
-    public void setSubscribed(Boolean subscribed) {
-        this.subscribed = subscribed;
-    }
 }

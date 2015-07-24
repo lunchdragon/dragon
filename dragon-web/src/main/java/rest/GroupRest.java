@@ -3,6 +3,7 @@ package rest;
 import com.google.gson.Gson;
 import dragon.model.food.Group;
 import dragon.model.food.Restaurant;
+import dragon.model.food.User;
 import dragon.service.BizBean;
 import dragon.service.BizIntf;
 import dragon.service.GroupBean;
@@ -20,12 +21,14 @@ public class GroupRest {
 
     @Path("save")
     @PUT
-    public String add(String json, @QueryParam("apply") boolean apply) {
+    public String add(String json, @QueryParam("apply") Boolean apply, @QueryParam("mail") String mail) {
         GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
 
         Gson gs = new Gson();
         Group g = gs.fromJson(json, Group.class);
         g = gb.saveGroup(g);
+        gb.saveUser(new User(mail));
+        gb.saveUserToGroup(mail, g.getId(), true);
         if(apply) {
             gb.applyPreference(g);
         }
@@ -35,9 +38,9 @@ public class GroupRest {
 
     @Path("all")
     @GET
-    public String view() {
+    public String view(@QueryParam("uid") Long uid) {
         GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
-        List<Group> list = gb.getGroups();
+        List<Group> list = gb.getGroups(uid);
         return toJson(list);
     }
 

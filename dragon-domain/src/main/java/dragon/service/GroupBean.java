@@ -42,10 +42,11 @@ public class GroupBean implements GroupIntf {
             logger.info("Adding group " + g.getName());
 
             String key = g.getName();
-            Long gid = DbHelper.runWithSingleResult2(null, "select id from dragon_group where name =?", key);
-            if(gid != null) {
+            Group ret = getGroup(key);
+            if(ret != null) {
 //                throw new RuntimeException("Group already exists: " + key);
                 logger.warn("Group already exists: " + key);
+                return ret;
             }
             Long id = DbHelper.getNextId(null);
             DbHelper.runUpdate2(null, "insert into dragon_group (id,name,preference,active,no_approve,alias) VALUES(?,?,?,?,?,?)",
@@ -69,23 +70,35 @@ public class GroupBean implements GroupIntf {
             return -1;
         }
 
+        int cnt = 0;
         DsRetriever dr = new YelpRetriever(g.getPreference());
-        int cnt = dr.searchAndImport(g.getId());
+        try {
+            cnt = dr.searchAndImport(g.getId());
+        } catch (Exception e){
+            logger.error("Failed to run data retriever: ", e);
+        }
 
         return cnt;
     }
 
-    public List<Group> getGroups() {
+    public List<Group> getGroups(Long uid) {
         Connection conn = null;
         List<Group> list = new ArrayList<Group>();
         try {
             conn = DbHelper.getConn();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from dragon_group");
+            PreparedStatement st = null;
+            if(uid != null && uid > 0) {
+                st = conn.prepareStatement("select * from dragon_group g inner join dragon_group_user gu on g.id=gu.g_id where gu.u_id=?)");
+                DbHelper.setParameters(st, uid);
+            } else {
+                st = conn.prepareStatement("select * from dragon_group");
+            }
+
+            ResultSet rs = st.executeQuery();
 
             while (rs.next()) {
                 list.add(new Group(rs.getLong("id"), rs.getString("name"), rs.getString("alias"), rs.getString("preference"),
-                        rs.getBoolean("active"), rs.getBoolean("no_approve")));
+                        rs.getBoolean("active"), rs.getBoolean("no_approve"), rs.getBoolean("admin")));
             }
         } catch (Exception e) {
             logger.error("");
@@ -148,7 +161,7 @@ public class GroupBean implements GroupIntf {
         if(ex == null) {
             cnt = DbHelper.runUpdate2(null, "insert into dragon_group_user (g_id,u_id,admin) VALUES(?,?,?)",
                     gid, uid, admin);
-        } else if(ex != admin) {
+        } else if(ex == false && admin == true) {//Do not change admin to false
             cnt = DbHelper.runUpdate2(null, "update dragon_group_user set admin=? where g_id=? and u_id=?", admin, gid, uid);
         }
 
@@ -211,8 +224,8 @@ public class GroupBean implements GroupIntf {
 
         Long uid = DbHelper.runWithSingleResult2(null, "select id from dragon_user where email = ?", email);
         if (uid == null) {
-            DbHelper.runUpdate2(null, "insert into dragon_user (id,email,subscribed,name) VALUES(?,?,?,?)",
-                    DbHelper.getNextId(null), email, true, email.split("@")[0]);
+            DbHelper.runUpdate2(null, "insert into dragon_user (id,email,name) VALUES(?,?,?)",
+                    DbHelper.getNextId(null), email, email.split("@")[0]);
         }
 
         int cnt = 0;
@@ -232,8 +245,8 @@ public class GroupBean implements GroupIntf {
         logger.info("Saving user: " + u.getEmail());
 
         String key = u.getEmail();
-        int cnt = DbHelper.runUpdate2(null, "update dragon_user set subscribed=?, name=? where email=?",
-                u.getSubscribed(), u.getName(), key);
+        int cnt = DbHelper.runUpdate2(null, "update dragon_user set name=? where email=?",
+                u.getName(), key);
 
         Long id = DbHelper.runWithSingleResult2(null, "select id from dragon_user where email = ?", key);
 
@@ -242,8 +255,8 @@ public class GroupBean implements GroupIntf {
         }
 
         id = DbHelper.getNextId(null);
-        DbHelper.runUpdate2(null, "insert into dragon_user (id,email,subscribed,name) VALUES(?,?,?,?)",
-                id, key, u.getSubscribed(), u.getName());
+        DbHelper.runUpdate2(null, "insert into dragon_user (id,email,name) VALUES(?,?,?)",
+                id, key,u.getName());
 
         return id;
     }
@@ -261,7 +274,6 @@ public class GroupBean implements GroupIntf {
                 rec = new User();
                 rec.setId(uid);
                 rec.setEmail(rs.getString("email"));
-                rec.setSubscribed(rs.getBoolean("subscribed"));
                 rec.setName(rs.getString("name"));
             }
 

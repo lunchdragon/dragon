@@ -12,9 +12,22 @@ public class Group {
     Boolean active;
     Boolean noApprove;
 
+    //trasnit
+    Boolean admin;
+
     public Group(String name, String preference) {
         this.name = name;
         this.preference = preference;
+    }
+
+    public Group(Long id, String name, String alias, String preference, Boolean active, Boolean noApprove, Boolean admin) {
+        this.id = id;
+        this.name = name;
+        this.alias = alias;
+        this.preference = preference;
+        this.active = active;
+        this.noApprove = noApprove;
+        this.admin = admin;
     }
 
     public Group(Long id, String name, String alias, String preference, Boolean active, Boolean noApprove) {
@@ -73,6 +86,14 @@ public class Group {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public Boolean getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
     }
 
     public Boolean getNoApprove() {

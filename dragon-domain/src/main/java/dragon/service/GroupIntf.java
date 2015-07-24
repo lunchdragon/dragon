@@ -23,7 +23,7 @@ public interface GroupIntf {
     int applyPreference(Group g);
     Restaurant addByBizId(String yid, Long gid);
     Boolean subscribe(String email, Long gid, boolean sub);
-    List<Group> getGroups();
+    List<Group> getGroups(Long uid);
     Group getGroup(String key);
     Long saveUser(User u);
 }

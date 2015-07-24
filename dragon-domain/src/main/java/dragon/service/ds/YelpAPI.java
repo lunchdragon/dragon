@@ -28,8 +28,7 @@ public class YelpAPI {
 
     private static final String API_HOST = "api.yelp.com";
     private static final String DEFAULT_TERM = "";
-    private static final String DEFAULT_LOCATION = "95054";
-    private static final String SEARCH_DIS = "8000";
+    private static final String SEARCH_DIS = "5000";
     private static final Integer SEARCH_LIMIT = 20;
     private static final Integer SEARCH_OFFSET = 0;
     private static final String SEARCH_CAT =  "chinese,japanese,taiwanese,korean";
@@ -159,12 +158,12 @@ public class YelpAPI {
                 "%s businesses found ...",
                 businesses==null ? 0: businesses.size()));
 
-        for(Object obj : businesses){
-            JSONObject bo = (JSONObject)obj;
-            System.out.println(String.format(
-                    "name: %s; rating: %s; Category: %s",
-                    bo.get("name"), bo.get("rating"), bo.get("categories")));
-        }
+//        for(Object obj : businesses){
+//            JSONObject bo = (JSONObject)obj;
+//            System.out.println(String.format(
+//                    "name: %s; rating: %s; Category: %s",
+//                    bo.get("name"), bo.get("rating"), bo.get("categories")));
+//        }
 
         return searchResponseJSON;
     }
@@ -177,7 +176,7 @@ public class YelpAPI {
         public String term = DEFAULT_TERM;
 
         @Parameter(names = {"-l", "--location"}, description = "Location to be Queried")
-        public String location = DEFAULT_LOCATION;
+        public String location = "";
 
         public String dis = SEARCH_DIS;
         public String cat = SEARCH_CAT;
