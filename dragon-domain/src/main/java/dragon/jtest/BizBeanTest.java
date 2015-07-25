@@ -38,7 +38,7 @@ public class BizBeanTest {
         logger.info("Adding test groups...");
         for(int i = 0; i < 5; i++){
             int location = 95050 + i;
-            Group g = new Group(TESTID + "_group" + i, "location=" + location +";category=chinese,japanese,taiwanese,korean;exclude=indian,thai;distance=3000;reviews=90");
+            Group g = new Group(TESTID + "_group" + i, "location=" + location +";category=chinese,japanese,taiwanese,korean;exclude=indian,thai;prefer=chinese,jang;distance=2000;reviews=90");
             g = gb.saveGroup(g);
             gb.applyPreference(g);
         }

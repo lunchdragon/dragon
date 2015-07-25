@@ -28,10 +28,8 @@ public class YelpAPI {
 
     private static final String API_HOST = "api.yelp.com";
     private static final String DEFAULT_TERM = "";
-    private static final String SEARCH_DIS = "5000";
     private static final Integer SEARCH_LIMIT = 20;
     private static final Integer SEARCH_OFFSET = 0;
-    private static final String SEARCH_CAT =  "chinese,japanese,taiwanese,korean";
     private static final String SEARCH_PATH = "/v2/search";
     private static final String BUSINESS_PATH = "/v2/business";
 
@@ -178,8 +176,8 @@ public class YelpAPI {
         @Parameter(names = {"-l", "--location"}, description = "Location to be Queried")
         public String location = "";
 
-        public String dis = SEARCH_DIS;
-        public String cat = SEARCH_CAT;
+        public String dis = "";
+        public String cat = "";
         public Integer limit = SEARCH_LIMIT;
         public Integer offset = SEARCH_OFFSET;
     }

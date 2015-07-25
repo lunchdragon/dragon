@@ -30,8 +30,9 @@ public class YelpRetriever implements DsRetriever {
     static Log logger = LogFactory.getLog(YelpRetriever.class);
 
     public String location = "";//must set by client apps
-    public String category = ConfigHelper.instance().getConfig("category");
-    public String exclude = ConfigHelper.instance().getConfig("exclude");
+    public String category = "";//all if not set
+    public String exclude = "";
+    public String prefer = "";
     public String distance = ConfigHelper.instance().getConfig("distance");
     public String reviews = ConfigHelper.instance().getConfig("reviews");
 
@@ -54,6 +55,8 @@ public class YelpRetriever implements DsRetriever {
                 this.distance = value;
             } else if("reviews".equalsIgnoreCase(key)){
                 this.reviews = value;
+            } else if("prefer".equalsIgnoreCase(key)){
+                this.prefer = value;
             }
         }
 
@@ -62,11 +65,15 @@ public class YelpRetriever implements DsRetriever {
     public int searchAndImport(Long gid) {
 
         String[] exs = {};
+        String[] pres = {};
 
         YelpAPI ya = new YelpAPI();
         YelpAPI.YelpAPICLI yaCli = getYaCli();
         if (StringUtils.isNotBlank(exclude)) {
             exs = exclude.split(",");
+        }
+        if (StringUtils.isNotBlank(prefer)) {
+            pres = prefer.split(",");
         }
 
         int cnt = 0;
@@ -98,38 +105,42 @@ public class YelpRetriever implements DsRetriever {
                     JSONObject bo = (JSONObject) obj;
 
                     String cats = bo.get("categories").toString().toLowerCase();
-                    Long factor = Math.round(Math.pow(2, Float.parseFloat(bo.get("rating").toString()))); // 2^rating
                     String name = bo.get("name").toString();
                     String id = bo.get("id").toString();
                     Integer rc = Integer.parseInt(bo.get("review_count").toString());
 
                     boolean excluded = rc < Integer.parseInt(reviews);
+                    double adjust = 0;
                     if(!excluded) {
                         for (String ex : exs) {
-                            if (cats.contains(ex)) {
+                            if (cats.contains(ex) || id.contains(ex)) {
                                 excluded = true;
                                 break;
                             }
                         }
                     }
-//                    if (name.contains("Express") || name.contains("Tea")) {
-//                        excluded = true;
-//                    }
 
                     if (excluded) {
                         logger.info(id + " excluded.");
                         continue;
                     }
 
-//                    if (cats.contains("japan") || cats.contains("korea")) {
-//                        factor -= 10;
-//                    }
-//                    if (cats.contains("canton")) {
-//                        factor -= 5;
-//                    }
-//                    if (name.contains("Seafood") || name.contains("BBQ")) {
-//                        factor -= 5;
-//                    }
+                    for (String pre : pres) {
+                        if (cats.contains(pre) || id.contains(pre)) {
+                            logger.info(id + " prefered.");
+                            adjust += 0.5;
+                            break;
+                        }
+                    }
+
+                    Long factor = Math.round(Math.pow(2, Float.parseFloat(bo.get("rating").toString()))); // 2^rating
+                    Long factorForGrp = Math.round(Math.pow(2, adjust + Float.parseFloat(bo.get("rating").toString())));
+                    if(factor > 30){
+                        factor = 30L;
+                    }
+                    if(factorForGrp > 30){
+                        factorForGrp = 30L;
+                    }
 
                     String cat = cats.split(",")[0];
                     cat = cat.substring(cat.indexOf("\"") + 1, cat.lastIndexOf("\""));
@@ -138,7 +149,7 @@ public class YelpRetriever implements DsRetriever {
                     Long rid = eb.saveRestaurant(r, conn);
 
                     if(gid != null && gid > 0) {
-                        gb.saveRestaurantToGroup(rid, gid, factor);
+                        gb.saveRestaurantToGroup(rid, gid, factorForGrp);
                     }
 
                     cnt++;
