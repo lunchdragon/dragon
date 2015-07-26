@@ -23,7 +23,7 @@ public interface BizIntf {
     void sendLunchEmail(String reason, Long gid);
     Map<String, Stat> stat(long gid, long exId, Boolean sort);
     Map<String, Stat> stat2(long gid, int days);
-    Long saveRecord(Record r);
+    Record saveRecord(Record r);
     String saveSecret(String key, String value);
     String getSecret(String key);
     List<String> getMails(Long gid);

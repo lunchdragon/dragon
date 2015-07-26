@@ -26,9 +26,9 @@ public class BizRest {
         Record rec = new Record();
         rec.setResid(r.getId());
         rec.setgId(gid);
-        t.saveRecord(rec);
+        rec = t.saveRecord(rec);
 
-        return toJson(r);
+        return toJson(rec);
     }
 
     @Path("save")

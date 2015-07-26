@@ -282,7 +282,7 @@ public class BizBean implements BizIntf {
             Record rec = new Record();
             rec.setResid(r.getId());
             rec.setgId(gid);
-            Long id = saveRecord(rec);
+            Long id = saveRecord(rec).getId();
 
             String gname = DbHelper.runWithSingleResult2(null, "select alias from dragon_group where id=?", gid);
 
@@ -519,17 +519,17 @@ public class BizBean implements BizIntf {
         return sb.toString();
     }
 
-    public Long saveRecord(Record r) {
+    public Record saveRecord(Record r) {
 
-        if (r.getId() == null || r.getId() <= 0) {
-            Long id = DbHelper.getNextId(null);
+        Long id = r.getId();
+        if (id == null || id <= 0) {
+            id = DbHelper.getNextId(null);
             DbHelper.runUpdate2(null, "insert into dragon_record (id,res_id,go_time,g_id) VALUES(?,?,?,?)",
                     id, r.getResid(), System.currentTimeMillis(), r.getgId());
-            return id;
         } else {
             DbHelper.runUpdate2(null, "update dragon_record set veto=? where id=?", r.getVeto(), r.getId());
-            return r.getId();
         }
+        return getRecord(id);
     }
 
     @Override

@@ -216,10 +216,8 @@ public class BizBeanTest {
         Long gid = DbHelper.runWithSingleResult2(null, "select id from dragon_group where name like ? limit 1", TESTID + "%");
         String mail = DbHelper.runWithSingleResult2(null, "select email from dragon_user where name like ? limit 1", TESTID + "%");
 
-        Boolean r = gb.subscribe(mail, gid , true);
-        assertTrue(r);
-
-        r = gb.subscribe(mail, gid, false);
+        gb.subscribe(mail, gid, true);
+        Boolean r = gb.subscribe(mail, gid, false);
         assertTrue(r);
     }
 
