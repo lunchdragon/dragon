@@ -5,14 +5,13 @@ import dragon.model.job.Schedule;
 import dragon.service.BizBean;
 import dragon.service.BizIntf;
 import dragon.utils.BeanFinder;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.*;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by lin.cheng on 8/7/15.
@@ -69,7 +68,7 @@ public class CustJob extends AbstractJob {
                     .usingJobData("params", params)
                     .build();
 
-
+            cron = getRandomCron(cron);
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("t_" + sid.toString(), DEFAULT_GRP)
                     .withSchedule(CronScheduleBuilder.cronSchedule(cron))
@@ -82,9 +81,25 @@ public class CustJob extends AbstractJob {
                 ctx.getScheduler().scheduleJob(jobDetail, trigger);
             }
 
-            logger.info(jt.name() + " -> " + gid + " rescheduled.");
+            logger.info(jt.name() + " -> " + gid + " rescheduled:" + cron);
             lastMap.put(sid, ver);
         }
+    }
 
+    private String getRandomCron(String src){
+        String[] ss = src.split(" ");
+        Date d = new Date();
+        d.setHours(Integer.parseInt(ss[2]));
+        d.setMinutes(Integer.parseInt(ss[1]));
+        d.setSeconds(Integer.parseInt(ss[0]));
+
+        long rdm = Math.abs(new Random().nextLong()) % (1000*60*15-1);
+        Date d2 = new Date(d.getTime() - 1000*60*30 + rdm);
+        ss[0] = String.valueOf(d2.getSeconds());
+        ss[1] = String.valueOf(d2.getMinutes());
+        ss[2] = String.valueOf(d2.getHours());
+
+        String ret = StringUtils.join(ss, " ");
+        return ret;
     }
 }
