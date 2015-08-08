@@ -4,6 +4,7 @@ import dragon.utils.BeanFinder;
 import dragon.service.BizIntf;
 import dragon.service.BizBean;
 import org.apache.commons.logging.LogFactory;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
@@ -32,8 +33,14 @@ public class LunchJob extends AbstractJob {
             t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         }
 
-        //TODO, check setting for each group
-        t.sendLunchEmail(null);
+        JobDataMap map = ctx.getJobDetail().getJobDataMap();
+        Long grp = map.getLongValue("gid");
+
+        if(grp == null) {
+//            t.sendLunchEmail(null);
+        } else {
+            t.sendLunchEmail(null, grp);
+        }
 
     }
 }

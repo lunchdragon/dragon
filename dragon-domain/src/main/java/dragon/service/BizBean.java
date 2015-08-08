@@ -8,6 +8,7 @@ import dragon.model.food.Record;
 import dragon.model.food.Restaurant;
 import dragon.model.food.Stat;
 import dragon.model.food.Vote;
+import dragon.model.job.Schedule;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
@@ -222,7 +223,8 @@ public class BizBean implements BizIntf {
 
         Map<String, Stat> ss = stat(gid, 0, false);
         long totalWeight = 0;
-        List<Long> preIds = DbHelper.getFirstColumnList(null, "select distinct res_id,id from dragon_record where g_id=" + gid + " order by id desc limit ?", 3);
+        List<Long> preIds = DbHelper.getFirstColumnList(null, "select distinct res_id,id from dragon_record where g_id=" + gid + " order by id desc limit ?",
+                Integer.parseInt(ConfigHelper.instance().getConfig("excludepre", "5")));
 
         Long t3 = System.currentTimeMillis();
         logger.debug("stat takes: " + (t3 - t2));
@@ -530,6 +532,58 @@ public class BizBean implements BizIntf {
             DbHelper.runUpdate2(null, "update dragon_record set veto=? where id=?", r.getVeto(), r.getId());
         }
         return getRecord(id);
+    }
+
+    public Schedule saveSchedule(Schedule s) {
+
+        if(s == null){
+            return null;
+        }
+
+        String type = s.getType();
+        Long gid = s.getGid();
+        Long time = System.currentTimeMillis();
+
+        Long id = DbHelper.runWithSingleResult2(null, "select id from dragon_schedule where type =? and gid=?", type, gid);
+
+        if (id != null) {
+            DbHelper.runUpdate2(null, "update dragon_schedule set active=?,cron=?,param=?,modified=? where id=?", s.getActive(), s.getCron(), s.getParam(), time, id);
+        } else {
+            id = DbHelper.getNextId(null);
+            DbHelper.runUpdate2(null, "insert into dragon_schedule (active,cron,param,modified,id,type,gid) VALUES(?,?,?,?,?,?,?)",
+                    s.getActive(), s.getCron(), s.getParam(), time, id, type, gid);
+        }
+
+        s.setId(id);
+        s.setModified(time);
+        s.setActive(s.getActive());
+        return s;
+    }
+
+    public List<Schedule> getSchedules(String condition) {
+        Connection conn = null;
+        List<Schedule> list = new ArrayList<Schedule>();
+        try {
+            conn = DbHelper.getConn();
+            PreparedStatement st = null;
+            if(StringUtils.isBlank(condition)) {
+                st = conn.prepareStatement("select * from dragon_schedule");
+            } else {
+                st = conn.prepareStatement("select * from dragon_schedule where " + condition);
+            }
+
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                list.add(new Schedule(rs.getLong("id"), rs.getBoolean("active"), rs.getString("type"), rs.getLong("gid"),
+                        rs.getString("cron"), rs.getString("param"), rs.getLong("modified")));
+            }
+        } catch (Exception e) {
+            logger.error("", e);
+        } finally {
+            DbHelper.closeConn(conn);
+        }
+        return list;
     }
 
     @Override

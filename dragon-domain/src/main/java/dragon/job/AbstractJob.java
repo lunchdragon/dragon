@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
 
 /**
  * Created by lin.cheng on 6/18/15.
@@ -20,5 +21,5 @@ public abstract class AbstractJob implements Job {
         }
     }
 
-    protected abstract void processJob(JobExecutionContext ctx) throws JobExecutionException;
+    protected abstract void processJob(JobExecutionContext ctx) throws SchedulerException;
 }

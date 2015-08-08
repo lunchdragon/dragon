@@ -1,6 +1,7 @@
 package dragon.jtest;
 
 import dragon.comm.Utils;
+import dragon.model.job.Schedule;
 import dragon.service.GroupBean;
 import dragon.service.GroupIntf;
 import dragon.utils.ConfigHelper;
@@ -8,6 +9,7 @@ import dragon.utils.DbHelper;
 import dragon.model.food.*;
 import dragon.service.BizBean;
 import dragon.service.BizIntf;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.*;
@@ -17,9 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by lin.cheng on 6/8/15.
@@ -235,6 +235,45 @@ public class BizBeanTest {
         }
     }
 
+    @Ignore
+    @Test
+    public void testSaveSch() {
+        System.out.println("testSaveSchedule...");
+
+        try {
+            Schedule s = new Schedule("Pick", 32497L, "0 0 11 ? * MON-FRI *");
+            Schedule ret = eb.saveSchedule(s);
+            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
+
+            s = new Schedule("Summary", 32497L, "0 0 11 ? * SAT *");
+            ret = eb.saveSchedule(s);
+            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
+
+            s = new Schedule("Pick", 29229L, "0 30 11 ? * MON-FRI *");
+            ret = eb.saveSchedule(s);
+            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
+
+            s = new Schedule("Summary", 29229L, "0 30 11 ? * SAT *");
+            ret = eb.saveSchedule(s);
+            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
+
+        } catch (Exception e) {
+            logger.error("", e);
+        }
+    }
+
+    @Test
+    public void testGetSch() {
+        System.out.println("testGetSchedules...");
+
+        try {
+            List<Schedule> ret = eb.getSchedules("active = true");
+            assertTrue(ret.size() >= 0);
+        } catch (Exception e) {
+            logger.error("", e);
+        }
+    }
+
     @Test
     public void testSecret() {
         System.out.println("testSecret...");
@@ -338,6 +377,13 @@ public class BizBeanTest {
             t.start();
             t.join();
         }
+    }
+
+    @Test
+    public void whatever(){
+        String src = "aaa,";
+        src.substring(0, src.length() - 1);
+        System.out.println(src.substring(0, src.length()-1));
     }
 
     private Vote.Result getRandomVote() {

@@ -12,7 +12,7 @@ public class Group {
     Boolean active;
     Boolean noApprove;
 
-    //trasnit
+    //transit
     Boolean admin;
 
     public Group(String name, String preference) {

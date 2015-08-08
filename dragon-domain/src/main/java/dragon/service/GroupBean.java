@@ -101,7 +101,7 @@ public class GroupBean implements GroupIntf {
                         rs.getBoolean("active"), rs.getBoolean("no_approve"), rs.getBoolean("admin")));
             }
         } catch (Exception e) {
-            logger.error("");
+            logger.error("", e);
         } finally {
             DbHelper.closeConn(conn);
         }

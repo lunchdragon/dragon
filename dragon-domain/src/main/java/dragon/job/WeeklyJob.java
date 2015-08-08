@@ -8,6 +8,7 @@ import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
@@ -41,9 +42,16 @@ public class WeeklyJob extends AbstractJob {
             t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         }
 
-        List<Long> gids = DbHelper.getFirstColumnList(null, "select id from dragon_group where active=true");
-        for(Long gid:gids){
-            send(gid);
+        JobDataMap map = ctx.getJobDetail().getJobDataMap();
+        Long grp = map.getLongValue("gid");
+
+        if(grp == null) {
+//            List<Long> gids = DbHelper.getFirstColumnList(null, "select id from dragon_group where active=true");
+//            for (Long gid : gids) {
+//                send(gid);
+//            }
+        } else {
+            send(grp);
         }
     }
 

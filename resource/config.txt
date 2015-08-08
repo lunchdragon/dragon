@@ -10,8 +10,7 @@ mailport=25
 mailuser=notify@accelops.com
 mailpwd=en.mailpwd
 
-location=95035
-category=chinese,japanese,taiwanese,korean
-exclude=indian,thai
 distance=4200
 reviews=90
+
+excludepre=5

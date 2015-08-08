@@ -8,33 +8,19 @@
 
     <schedule>
         <job>
-            <name>LunchJob</name>
-            <job-class>dragon.job.LunchJob</job-class>
+            <name>CustJob</name>
+            <description>Cust Jobs</description>
+            <job-class>dragon.job.CustJob</job-class>
             <durability>true</durability>
             <recover>false</recover>
         </job>
         <trigger>
-            <cron>
-                <name>LunchTrigger</name>
-                <job-name>LunchJob</job-name>
-                <cron-expression>0 30 11 ? * MON-FRI *</cron-expression>
-            </cron>
-        </trigger>
-    </schedule>
-
-    <schedule>
-        <job>
-            <name>WeeklyJob</name>
-            <job-class>dragon.job.WeeklyJob</job-class>
-            <durability>true</durability>
-            <recover>false</recover>
-        </job>
-        <trigger>
-            <cron>
-                <name>WeeklyTrigger</name>
-                <job-name>WeeklyJob</job-name>
-                <cron-expression>0 30 11 ? * SAT *</cron-expression>
-            </cron>
+            <simple>
+                <name>CustTrigger</name>
+                <job-name>CustJob</job-name>
+                <repeat-count>500000000</repeat-count>
+                <repeat-interval>20000</repeat-interval>
+            </simple>
         </trigger>
     </schedule>
 

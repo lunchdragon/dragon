@@ -2,6 +2,7 @@ package rest;
 
 import com.google.gson.Gson;
 import dragon.comm.Pair;
+import dragon.model.job.Schedule;
 import dragon.service.*;
 import dragon.model.food.*;
 import dragon.utils.BeanFinder;
@@ -74,6 +75,30 @@ public class BizRest {
             rs = t.getRestaurants("");
         }
         return toJson(rs);
+    }
+
+    @Path("schedule")
+    @GET
+    public String getSch(@QueryParam("gid") Long gid) {
+        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+        List<Schedule> rs = new ArrayList<Schedule>();
+        if(gid != null && gid > 0) {
+            rs = t.getSchedules("gid=" + gid);
+        } else {
+            rs = t.getSchedules(null);
+        }
+        return toJson(rs);
+    }
+
+    @Path("schedule")
+    @PUT
+    public String saveSch(String json) {
+        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+        Gson gs = new Gson();
+        Schedule r = gs.fromJson(json, Schedule.class);
+        r = t.saveSchedule(r);
+
+        return toJson(r);
     }
 
     @Path("xadd")

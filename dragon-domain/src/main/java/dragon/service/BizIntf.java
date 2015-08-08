@@ -2,6 +2,7 @@ package dragon.service;
 
 import dragon.comm.Pair;
 import dragon.model.food.*;
+import dragon.model.job.Schedule;
 
 import javax.ejb.Local;
 import java.sql.Connection;
@@ -28,4 +29,6 @@ public interface BizIntf {
     String getSecret(String key);
     List<String> getMails(Long gid);
     Restaurant getRestaurant(Pair<String, Object> p);
+    List<Schedule> getSchedules(String condition);
+    Schedule saveSchedule(Schedule s);
 }

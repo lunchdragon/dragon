@@ -87,4 +87,12 @@ public class ConfigHelper {
     public String getConfig(String key) {
         return map.get(key);
     }
+
+    public String getConfig(String key, String dft) {
+        String ret = map.get(key);
+        if(ret == null){
+            return dft;
+        }
+        return ret;
+    }
 }
