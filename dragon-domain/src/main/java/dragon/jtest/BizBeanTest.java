@@ -38,7 +38,7 @@ public class BizBeanTest {
         logger.info("Adding test groups...");
         for(int i = 0; i < 5; i++){
             int location = 95050 + i;
-            Group g = new Group(TESTID + "_group" + i, "location=" + location +";category=chinese,japanese,taiwanese,korean;exclude=indian,thai;prefer=chinese,jang;distance=2000;reviews=90");
+            Group g = new Group(TESTID + "_group" + i, "location=" + location +";category=chinese,japanese,taiwanese,korean;exclude=indian,thai;prefer=chinese,jang;distance=2800;reviews=90");
             g = gb.saveGroup(g);
             gb.applyPreference(g);
         }
@@ -126,6 +126,8 @@ public class BizBeanTest {
                 System.out.println(s.toPrintString());
             }
         }
+
+        eb.printPerfData();
     }
 
     @Ignore
@@ -241,21 +243,21 @@ public class BizBeanTest {
         System.out.println("testSaveSchedule...");
 
         try {
-            Schedule s = new Schedule("Pick", 32497L, "0 0 11 ? * MON-FRI *");
+            Schedule s = new Schedule("Pick", 32497L, "0 30 11 ? * MON-FRI *");
             Schedule ret = eb.saveSchedule(s);
             assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
 
-            s = new Schedule("Summary", 32497L, "0 0 11 ? * SAT *");
+            s = new Schedule("Summary", 32497L, "0 30 11 ? * SAT *");
             ret = eb.saveSchedule(s);
             assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
 
-            s = new Schedule("Pick", 29229L, "0 30 11 ? * MON-FRI *");
-            ret = eb.saveSchedule(s);
-            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
-
-            s = new Schedule("Summary", 29229L, "0 30 11 ? * SAT *");
-            ret = eb.saveSchedule(s);
-            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
+//            s = new Schedule("Pick", 29229L, "0 50 11 ? * MON-FRI *");
+//            ret = eb.saveSchedule(s);
+//            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
+//
+//            s = new Schedule("Summary", 29229L, "0 50 11 ? * SAT *");
+//            ret = eb.saveSchedule(s);
+//            assertTrue(StringUtils.equals(s.getCron(), ret.getCron()));
 
         } catch (Exception e) {
             logger.error("", e);

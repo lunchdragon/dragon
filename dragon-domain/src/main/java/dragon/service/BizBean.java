@@ -30,8 +30,16 @@ public class BizBean implements BizIntf {
 
     static Log logger = LogFactory.getLog(BizBean.class);
     static final String KEY = "KEY";
-    static final Double GRAVITY = 0.7;
-    static final Integer BASE = 20;
+    static final Double GRAVITY = 0.5;
+    static final Integer BASE = 0;
+
+    public long tt1 = 0;
+    public long tt2 = 0;
+    public long tt3 = 0;
+    public long tt4 = 0;
+    public long tt5 = 0;
+    public long tt6 = 0;
+    public long tt7 = 0;
 
     public int importRestaurants(String csv) {
         List<String[]> data = new ArrayList<String[]>();
@@ -132,16 +140,18 @@ public class BizBean implements BizIntf {
         }
 
         Long t2 = System.currentTimeMillis();
+        tt4 += t2-t1;
         logger.debug("getRec takes: " + (t2 - t1));
 
         saveVote(v, null);
 
         Long t3 = System.currentTimeMillis();
+        tt5 += t3-t2;
         logger.debug("saveVote takes: " + (t3 - t2));
 
         if (v.getResult() == Vote.Result.killme && resend) {
 
-            if (!rec.getVeto() && System.currentTimeMillis() - rec.getGoTime() < 1000 * 60 * 60) {//within 1 hour
+            if (!rec.getVeto() && System.currentTimeMillis() - rec.getGoTime() < 1000 * 60 * 30) {//within 30 mins
                 rec.setVeto(true);
                 try {
                     saveRecord(rec);
@@ -150,12 +160,14 @@ public class BizBean implements BizIntf {
                     return false;
                 }
                 Long t4 = System.currentTimeMillis();
+                tt6 += t4-t3;
                 logger.debug("saveRecord takes: " + (t4 - t3));
 
                 //re-pickup
                 sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "表示打死都不去。", rec.getgId());
 
                 Long t5 = System.currentTimeMillis();
+                tt7 += t5-t4;
                 logger.debug("Email takes: " + (t5 - t4));
             } else {
                 logger.info("Already vetoed or time passed.");
@@ -219,6 +231,7 @@ public class BizBean implements BizIntf {
         }
 
         Long t2 = System.currentTimeMillis();
+        tt1 += t2-t1;
         logger.debug("getRestaurants takes: " + (t2 - t1));
 
         Map<String, Stat> ss = stat(gid, 0, false);
@@ -227,6 +240,7 @@ public class BizBean implements BizIntf {
                 Integer.parseInt(ConfigHelper.instance().getConfig("excludepre", "5")));
 
         Long t3 = System.currentTimeMillis();
+        tt2 += t3-t2;
         logger.debug("stat takes: " + (t3 - t2));
 
         for (Restaurant r : list) {
@@ -248,6 +262,7 @@ public class BizBean implements BizIntf {
 
             if (pos <= selected && selected < pos + getWeight(ss, r)) {
                 Long t4 = System.currentTimeMillis();
+                tt3 += t4-t3;
                 logger.debug("pick up takes: " + (t4 - t3));
                 logger.info("Picked up: " + r.getName());
                 return r;
@@ -740,12 +755,26 @@ public class BizBean implements BizIntf {
         return mails;
     }
 
+    public void printPerfData(){
+        System.out.println("getRestaurants takes:" + tt1);
+        System.out.println("stat takes:" + tt2);
+        System.out.println("pick up takes:" + tt3);
+        System.out.println("getRec takes:" + tt4);
+        System.out.println("saveVote takes:" + tt5);
+        System.out.println("saveRecord takes:" + tt6);
+        System.out.println("Email takes:" + tt7);
+    }
+
     private long getWeight(Map<String, Stat> ss, Restaurant r){
         String name = r.getName();
+        long ret = r.getWeight() + BASE;
         if(ss.get(name) != null){
-            return r.getWeight() * ss.get(name).getPosScore();
+            ret = r.getWeight() + ss.get(name).getScore();
+            if(ret < 1){
+                ret = 1;
+            }
         }
-        return r.getWeight() * BASE;
+        return ret;
     }
 
     static class ValueComparator implements Comparator<String> {

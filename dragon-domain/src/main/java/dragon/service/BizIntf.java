@@ -29,6 +29,7 @@ public interface BizIntf {
     String getSecret(String key);
     List<String> getMails(Long gid);
     Restaurant getRestaurant(Pair<String, Object> p);
-    List<Schedule> getSchedules(String condition);
+    List<Schedule> getSchedules(String codition);
     Schedule saveSchedule(Schedule s);
+    void printPerfData();
 }

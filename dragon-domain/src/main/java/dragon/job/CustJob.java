@@ -22,6 +22,7 @@ public class CustJob extends AbstractJob {
 
     static Log logger = LogFactory.getLog(CustJob.class);
     static Map<Long, Long> lastMap = new Hashtable<Long, Long>();//thread safe
+    static Map<Long, Long> newMap = new Hashtable<Long, Long>();//thread safe
 
     BizIntf t = null;
 
@@ -41,6 +42,7 @@ public class CustJob extends AbstractJob {
         }
 
         List<Schedule> ss = t.getSchedules("active = true");
+        newMap = new HashMap<Long, Long>();
 
         for (Schedule s : ss) {
             Long sid = s.getId();
@@ -56,6 +58,7 @@ public class CustJob extends AbstractJob {
             }
 
             Long last = lastMap.get(sid);
+            newMap.put(sid, ver);
 
             if (last != null && last.equals(ver)) {//No change
                 continue;
@@ -82,8 +85,17 @@ public class CustJob extends AbstractJob {
             }
 
             logger.info(jt.name() + " -> " + gid + " rescheduled:" + cron);
-            lastMap.put(sid, ver);
+            newMap.put(sid, ver);
         }
+
+        for (Long key:lastMap.keySet()){
+            if(!newMap.containsKey(key)){
+                logger.info("Removing schedule: " + key + " because it was deleted or no longer active.");
+                ctx.getScheduler().deleteJob(new JobKey(key+"", DEFAULT_GRP));
+            }
+        }
+
+        lastMap = newMap;
     }
 
     private String getRandomCron(String src){
