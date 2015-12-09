@@ -1,5 +1,6 @@
 package dragon.service;
 
+import dragon.comm.Pair;
 import dragon.model.food.Group;
 import dragon.model.food.Restaurant;
 import dragon.model.food.User;
@@ -42,7 +43,7 @@ public class GroupBean implements GroupIntf {
             logger.info("Adding group " + g.getName());
 
             String key = g.getName();
-            Group ret = getGroup(key);
+            Group ret = getGroup(new Pair<String, Object>("name", key));
             if(ret != null) {
 //                throw new RuntimeException("Group already exists: " + key);
                 logger.warn("Group already exists: " + key);
@@ -58,7 +59,7 @@ public class GroupBean implements GroupIntf {
                     g.getPreference(), g.getNoApprove(), g.getAlias(), g.getActive(), g.getId());
         }
 
-        Group ret = getGroup(g.getName());
+        Group ret = getGroup(new Pair<String, Object>("name", g.getName()));
         return ret;
     }
 
@@ -108,14 +109,14 @@ public class GroupBean implements GroupIntf {
         return list;
     }
 
-    public Group getGroup(String key){
+    public Group getGroup(Pair<String, Object> p){
         Connection conn = null;
         Group g = null;
 
         try {
             conn = DbHelper.getConn();
-            PreparedStatement st = conn.prepareStatement("select * from dragon_group where name = ?");
-            DbHelper.setParameters(st, key);
+            PreparedStatement st = conn.prepareStatement("select * from dragon_group where " + p.getLeft() + "= ?");
+            DbHelper.setParameters(st, p.getRight());
             ResultSet rs = st.executeQuery();
 
             if (rs.next()) {
@@ -198,8 +199,9 @@ public class GroupBean implements GroupIntf {
             if(factor > 30){
                 factor = 30L;
             }
-            logger.info("Factor changed:" + rid + "|" + gid);
-            cnt = DbHelper.runUpdate2(null, "update dragon_group_rest set factor=? where g_id=? and res_id=?", factor, gid, rid);
+            logger.info("Factor not changed:" + rid + "|" + gid);
+//            logger.info("Factor changed:" + rid + "|" + gid);
+//            cnt = DbHelper.runUpdate2(null, "update dragon_group_rest set factor=? where g_id=? and res_id=?", factor, gid, rid);
         }
 
         return cnt;

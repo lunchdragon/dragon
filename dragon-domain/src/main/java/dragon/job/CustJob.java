@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.quartz.*;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by lin.cheng on 8/7/15.
@@ -21,8 +21,8 @@ public class CustJob extends AbstractJob {
     static final String DEFAULT_GRP = "DEFAULT";
 
     static Log logger = LogFactory.getLog(CustJob.class);
-    static Map<Long, Long> lastMap = new Hashtable<Long, Long>();//thread safe
-    static Map<Long, Long> newMap = new Hashtable<Long, Long>();//thread safe
+    static Map<Long, Long> lastMap = new ConcurrentHashMap<Long, Long>();
+    static Map<Long, Long> newMap = new ConcurrentHashMap<Long, Long>();
 
     BizIntf t = null;
 

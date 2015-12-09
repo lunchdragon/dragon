@@ -1,5 +1,6 @@
 package dragon.service;
 
+import dragon.comm.Pair;
 import dragon.model.food.Group;
 import dragon.model.food.Restaurant;
 import dragon.model.food.User;
@@ -24,6 +25,6 @@ public interface GroupIntf {
     Restaurant addByBizId(String yid, Long gid);
     Boolean subscribe(String email, Long gid, boolean sub);
     List<Group> getGroups(Long uid);
-    Group getGroup(String key);
+    Group getGroup(Pair<String, Object> p);
     Long saveUser(User u);
 }

@@ -68,16 +68,6 @@ public class Stat {
         return score;
     }
 
-    public int getPosScore() {
-        if(score < 1){
-            score = 1;
-        }
-        if(score > 1000){
-            score = 1000;
-        }
-        return score;
-    }
-
     public void setScore(int score) {
         this.score = score;
     }

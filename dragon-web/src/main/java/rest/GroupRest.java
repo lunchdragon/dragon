@@ -1,6 +1,7 @@
 package rest;
 
 import com.google.gson.Gson;
+import dragon.comm.Pair;
 import dragon.model.food.Group;
 import dragon.model.food.Restaurant;
 import dragon.model.food.User;
@@ -48,7 +49,7 @@ public class GroupRest {
     @GET
     public String item(@PathParam("key") String key) {
         GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
-        Group g = gb.getGroup(key);
+        Group g = gb.getGroup(new Pair<String, Object>("name", key));
         return toJson(g);
     }
 

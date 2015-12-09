@@ -1,9 +1,10 @@
 package dragon.service.ds;
 
 import dragon.comm.Pair;
+import dragon.model.food.Group;
 import dragon.model.food.Restaurant;
-import dragon.service.BizIntf;
 import dragon.service.BizBean;
+import dragon.service.BizIntf;
 import dragon.service.GroupBean;
 import dragon.service.GroupIntf;
 import dragon.utils.BeanFinder;
@@ -17,6 +18,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -40,29 +42,67 @@ public class YelpRetriever implements DsRetriever {
     }
 
     public YelpRetriever(String settings) {
-        String[] ss = settings.split(";");
-        for (String s : ss){
-            String key = StringUtils.trim(s.split("=")[0]);
-            String value = StringUtils.trim(s.split("=")[1]);
+        applySettings(settings);
+    }
 
-            if("location".equalsIgnoreCase(key)){
-                this.location = value;
-            } else if("category".equalsIgnoreCase(key)){
-                this.category = value;
-            } else if("exclude".equalsIgnoreCase(key)){
-                this.exclude = value;
-            } else if("distance".equalsIgnoreCase(key)){
-                this.distance = value;
-            } else if("reviews".equalsIgnoreCase(key)){
-                this.reviews = value;
-            } else if("prefer".equalsIgnoreCase(key)){
-                this.prefer = value;
-            }
-        }
+    public String getLocation() {
+        return location;
+    }
 
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getExclude() {
+        return exclude;
+    }
+
+    public void setExclude(String exclude) {
+        this.exclude = exclude;
+    }
+
+    public String getPrefer() {
+        return prefer;
+    }
+
+    public void setPrefer(String prefer) {
+        this.prefer = prefer;
+    }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
+    }
+
+    public String getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(String reviews) {
+        this.reviews = reviews;
     }
 
     public int searchAndImport(Long gid) {
+
+        if(gid != null){
+            Group group = gb.getGroup(new Pair<String, Object>("id", gid));
+            if(group == null){
+                logger.error("Group not found: " + gid);
+                return -1;
+            }
+            applySettings(group.getPreference());
+        }
 
         String[] exs = {};
         String[] pres = {};
@@ -127,7 +167,7 @@ public class YelpRetriever implements DsRetriever {
 
                     for (String pre : pres) {
                         if (cats.contains(pre) || id.contains(pre)) {
-                            logger.info(id + " prefered.");
+                            logger.info(id + " preferred.");
                             adjust += 0.5;
                             break;
                         }
@@ -199,6 +239,29 @@ public class YelpRetriever implements DsRetriever {
         return ret;
     }
 
+    private void applySettings(String settings){
+        String[] ss = settings.split(";");
+        for (String s : ss){
+            String key = StringUtils.trim(s.split("=")[0]);
+            String value = StringUtils.trim(s.split("=")[1]);
+
+            if(StringUtils.isBlank(key) || StringUtils.isBlank(value)){
+                continue;
+            }
+
+            Class clazz = this.getClass();
+            String getStr = "set" + StringUtils.capitalize(key);
+            Method setMethod = null;
+            try {
+                setMethod = clazz.getMethod(getStr, String.class);
+                setMethod.invoke(this, value);
+            } catch (Exception e) {
+                logger.error("Invalid attribute: " + key);
+                continue;
+            }
+        }
+    }
+
     private YelpAPI.YelpAPICLI getYaCli(){
 
         YelpAPI.YelpAPICLI yaCli = new YelpAPI.YelpAPICLI();
@@ -238,7 +301,7 @@ public class YelpRetriever implements DsRetriever {
     }
 
     public static void main(String[] args) {
-        new YelpRetriever().searchAndImport(null);
+        new YelpRetriever().searchAndImport(29229L);
 //        new YelpRetriever().addByBid(null, "chef-yu-hunan-gourmet-sunnyvale");
     }
 

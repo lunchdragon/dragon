@@ -20,7 +20,6 @@ public interface BizIntf {
     Long saveRestaurant(Restaurant r, Connection conn);
     int importRestaurants(String csv);
     Boolean vote(Vote v, Boolean resend);
-    void sendLunchEmail(String reason);
     void sendLunchEmail(String reason, Long gid);
     Map<String, Stat> stat(long gid, long exId, Boolean sort);
     Map<String, Stat> stat2(long gid, int days);
@@ -29,7 +28,7 @@ public interface BizIntf {
     String getSecret(String key);
     List<String> getMails(Long gid);
     Restaurant getRestaurant(Pair<String, Object> p);
-    List<Schedule> getSchedules(String codition);
+    List<Schedule> getSchedules(String condition);
     Schedule saveSchedule(Schedule s);
     void printPerfData();
 }

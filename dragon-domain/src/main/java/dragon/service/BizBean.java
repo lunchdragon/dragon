@@ -33,13 +33,7 @@ public class BizBean implements BizIntf {
     static final Double GRAVITY = 0.5;
     static final Integer BASE = 0;
 
-    public long tt1 = 0;
-    public long tt2 = 0;
-    public long tt3 = 0;
-    public long tt4 = 0;
-    public long tt5 = 0;
-    public long tt6 = 0;
-    public long tt7 = 0;
+    public long tt1, tt2, tt3, tt4, tt5, tt6, tt7;
 
     public int importRestaurants(String csv) {
         List<String[]> data = new ArrayList<String[]>();
@@ -204,7 +198,7 @@ public class BizBean implements BizIntf {
         try {
             conn = DbHelper.getConn();
             PreparedStatement st = conn.prepareStatement("select r.name,r.link,gr.factor,r.id,r.alias,r.category from dragon_restaurant r,dragon_group g,dragon_group_rest gr " +
-                    "where gr.res_id=r.id and gr.g_id=g.id and g.id=?");
+                    "where gr.res_id=r.id and gr.g_id=g.id and g.id=? and gr.factor>0");
             DbHelper.setParameters(st, gid);
             ResultSet rs = st.executeQuery();
 
@@ -272,13 +266,6 @@ public class BizBean implements BizIntf {
 
         logger.info("Not able to find a restaurant.");
         return null;
-    }
-
-    public void sendLunchEmail(String reason){
-        List<Long> gids = DbHelper.getFirstColumnList(null, "select id from dragon_group where active=true");
-        for(Long gid:gids){
-            sendLunchEmail(reason, gid);
-        }
     }
 
     public void sendLunchEmail(String reason, Long gid) {
@@ -527,8 +514,8 @@ public class BizBean implements BizIntf {
 
         String url = "http://" + server + ":" + port + "/dragon/rest/biz/";
 
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱 ☺</a>").append("<br>");
-        sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("一般 ☹</a>").append("<br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱</a>").append("<br>");
+        sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("坑爹</a>").append("<br>");
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a>")
                 .append(" (不搭伙的求别闹:( )").append("<br><br>");
         sb.append("<a href=\'").append(url + "group/unsub?mail=" + mail).append("&gid=").append(gid).append("\'/>").append("取关!</a>").append("<br>");
@@ -601,7 +588,6 @@ public class BizBean implements BizIntf {
         return list;
     }
 
-    @Override
     public String saveSecret(String key, String value) {
 
         logger.info("Saving secret:" + key);
@@ -625,7 +611,6 @@ public class BizBean implements BizIntf {
         return enValue;
     }
 
-    @Override
     public String getSecret(String key) {
         String enValue = DbHelper.runWithSingleResult2(null, "select value from dragon_secret where name =?", key);
 
