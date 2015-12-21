@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.1.9
 -- Dumped by pg_dump version 9.3.1
--- Started on 2015-08-07 17:13:13 PDT
+-- Started on 2015-12-21 14:22:25 PST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,7 +21,7 @@ SET default_with_oids = false;
 
 --
 -- TOC entry 255 (class 1259 OID 210899)
--- Name: dragon_group; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_group; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_group (
@@ -38,7 +38,7 @@ ALTER TABLE public.dragon_group OWNER TO ambari;
 
 --
 -- TOC entry 257 (class 1259 OID 210934)
--- Name: dragon_group_rest; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_group_rest; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_group_rest (
@@ -52,7 +52,7 @@ ALTER TABLE public.dragon_group_rest OWNER TO ambari;
 
 --
 -- TOC entry 256 (class 1259 OID 210920)
--- Name: dragon_group_user; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_group_user; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_group_user (
@@ -66,7 +66,7 @@ ALTER TABLE public.dragon_group_user OWNER TO ambari;
 
 --
 -- TOC entry 252 (class 1259 OID 210849)
--- Name: dragon_record; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_record; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_record (
@@ -82,7 +82,7 @@ ALTER TABLE public.dragon_record OWNER TO ambari;
 
 --
 -- TOC entry 250 (class 1259 OID 210814)
--- Name: dragon_restaurant; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_restaurant; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_restaurant (
@@ -99,7 +99,7 @@ ALTER TABLE public.dragon_restaurant OWNER TO ambari;
 
 --
 -- TOC entry 258 (class 1259 OID 210986)
--- Name: dragon_schedule; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_schedule; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_schedule (
@@ -117,7 +117,7 @@ ALTER TABLE public.dragon_schedule OWNER TO ambari;
 
 --
 -- TOC entry 254 (class 1259 OID 210888)
--- Name: dragon_secret; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_secret; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_secret (
@@ -131,7 +131,7 @@ ALTER TABLE public.dragon_secret OWNER TO ambari;
 
 --
 -- TOC entry 251 (class 1259 OID 210838)
--- Name: dragon_user; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_user; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_user (
@@ -145,13 +145,14 @@ ALTER TABLE public.dragon_user OWNER TO ambari;
 
 --
 -- TOC entry 253 (class 1259 OID 210860)
--- Name: dragon_vote; Type: TABLE; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_vote; Type: TABLE; Schema: public; Owner: ambari; Tablespace:
 --
 
 CREATE TABLE dragon_vote (
     rec_id bigint NOT NULL,
     vote integer NOT NULL,
-    email character varying NOT NULL
+    email character varying NOT NULL,
+    ip character varying
 );
 
 
@@ -159,7 +160,7 @@ ALTER TABLE public.dragon_vote OWNER TO ambari;
 
 --
 -- TOC entry 2980 (class 2606 OID 210821)
--- Name: dr_id; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dr_id; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace:
 --
 
 ALTER TABLE ONLY dragon_restaurant
@@ -168,7 +169,7 @@ ALTER TABLE ONLY dragon_restaurant
 
 --
 -- TOC entry 2986 (class 2606 OID 210919)
--- Name: dragon_group_pkey; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_group_pkey; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace:
 --
 
 ALTER TABLE ONLY dragon_group
@@ -177,7 +178,7 @@ ALTER TABLE ONLY dragon_group
 
 --
 -- TOC entry 2988 (class 2606 OID 210994)
--- Name: dragon_schedule_pkey; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace: 
+-- Name: dragon_schedule_pkey; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace:
 --
 
 ALTER TABLE ONLY dragon_schedule
@@ -186,7 +187,7 @@ ALTER TABLE ONLY dragon_schedule
 
 --
 -- TOC entry 2984 (class 2606 OID 210853)
--- Name: rec_key; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace: 
+-- Name: rec_key; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace:
 --
 
 ALTER TABLE ONLY dragon_record
@@ -195,7 +196,7 @@ ALTER TABLE ONLY dragon_record
 
 --
 -- TOC entry 2982 (class 2606 OID 210846)
--- Name: user_key; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace: 
+-- Name: user_key; Type: CONSTRAINT; Schema: public; Owner: ambari; Tablespace:
 --
 
 ALTER TABLE ONLY dragon_user
