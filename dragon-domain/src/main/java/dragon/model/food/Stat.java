@@ -55,8 +55,8 @@ public class Stat {
     }
 
     public void setFactor(int factor) {
-        if(factor < 1){
-            factor = 1;
+        if(factor < 0){
+            factor = 0;
         }
         if(factor > 30){
             factor = 30;

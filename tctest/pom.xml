@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>dragon</artifactId>
+        <groupId>com.dragon</groupId>
+        <version>1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>tctest</artifactId>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>terracotta-snapshots</id>
+            <url>http://www.terracotta.org/download/reflector/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    <build>
+    <plugins>
+        <plugin>
+            <groupId>org.terracotta.maven.plugins</groupId>
+            <artifactId>tc-maven-plugin</artifactId>
+            <version>1.5.1</version>
+            <executions>
+                <execution>
+                    <id>run-integration</id>
+                    <phase>pre-integration-test</phase>
+                    <goals>
+                        <goal>run-integration</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>terminate-integration</id>
+                    <phase>post-integration-test</phase>
+                    <goals>
+                        <goal>terminate-integration</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+    </build>
+
+</project>

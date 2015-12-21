@@ -145,7 +145,7 @@ public class BizBean implements BizIntf {
 
         if (v.getResult() == Vote.Result.killme && resend) {
 
-            if (!rec.getVeto() && System.currentTimeMillis() - rec.getGoTime() < 1000 * 60 * 30) {//within 30 mins
+            if (!rec.getVeto() && System.currentTimeMillis() - rec.getGoTime() < 1000 * 60 * 60) {//within 60 mins
                 rec.setVeto(true);
                 try {
                     saveRecord(rec);
@@ -372,7 +372,9 @@ public class BizBean implements BizIntf {
                 if(ret.containsKey(name)){
                     Stat s = ret.get(name);
                     s.setVisited(cnt);
-                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.pow(s.getFactor(), GRAVITY)));
+                    if(s.getFactor() > 0){
+                        s.setScore(s.getScore() + (int) Math.round(cnt / Math.pow(s.getFactor(), GRAVITY)));
+                    }
                 }
             }
 
@@ -449,7 +451,9 @@ public class BizBean implements BizIntf {
                 if(ret.containsKey(name)){
                     Stat s = ret.get(name);
                     s.setVisited(cnt);
-                    s.setScore(s.getScore() + (int) Math.round(cnt / Math.pow(s.getFactor(), GRAVITY)));
+                    if(s.getFactor() > 0){
+                        s.setScore(s.getScore() + (int) Math.round(cnt / Math.pow(s.getFactor(), GRAVITY)));
+                    }
                 }
             }
 
@@ -485,7 +489,7 @@ public class BizBean implements BizIntf {
 
             if(ss.containsKey(name)){
                 Stat s = ss.get(name);
-                if(factor != null && factor > 0){
+                if(factor != null && factor >= 0){
                     s.setFactor(factor);
                 }
             }
@@ -704,6 +708,7 @@ public class BizBean implements BizIntf {
     private Boolean saveVote(Vote r, Connection conn) {
 
         String mail = r.getEmail();
+        String ip = r.getIp();
         Long rid = r.getRecId();
         int res = r.getResult().ordinal();
 
@@ -714,15 +719,15 @@ public class BizBean implements BizIntf {
                 conn = DbHelper.getConn();
             }
 
-            Object obj = DbHelper.runWithSingleResult2(conn, "select vote from dragon_vote where email = ? and rec_id =?", mail, rid);
+            Object obj = DbHelper.runWithSingleResult2(conn, "select vote from dragon_vote where (email = ? or ip = ?) and rec_id =?", mail, ip, rid);
             if (obj != null) {
                 if (res != (Integer) obj) {
-                    DbHelper.runUpdate2(conn, "update dragon_vote set vote=? where email=? and rec_id=?", res, mail, rid);
+                    DbHelper.runUpdate2(conn, "update dragon_vote set vote=?,ip=? where (email = ? or ip = ?) and rec_id=?", res, ip, mail, ip, rid);
                 } else {
                     return false;
                 }
             } else {
-                DbHelper.runUpdate2(conn, "insert into dragon_vote (rec_id,vote,email) VALUES(?,?,?)", rid, res, mail);
+                DbHelper.runUpdate2(conn, "insert into dragon_vote (rec_id,vote,email,ip) VALUES(?,?,?,?)", rid, res, mail, ip);
             }
         } catch (Exception e) {
             logger.error("", e);

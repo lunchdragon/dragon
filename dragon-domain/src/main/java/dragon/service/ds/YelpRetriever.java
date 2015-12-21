@@ -35,6 +35,7 @@ public class YelpRetriever implements DsRetriever {
     public String category = "";//all if not set
     public String exclude = "";
     public String prefer = "";
+    public String nopre = "";
     public String distance = ConfigHelper.instance().getConfig("distance");
     public String reviews = ConfigHelper.instance().getConfig("reviews");
 
@@ -93,6 +94,14 @@ public class YelpRetriever implements DsRetriever {
         this.reviews = reviews;
     }
 
+    public String getNopre() {
+        return nopre;
+    }
+
+    public void setNopre(String nopre) {
+        this.nopre = nopre;
+    }
+
     public int searchAndImport(Long gid) {
 
         if(gid != null){
@@ -106,6 +115,7 @@ public class YelpRetriever implements DsRetriever {
 
         String[] exs = {};
         String[] pres = {};
+        String[] nps = {};
 
         YelpAPI ya = new YelpAPI();
         YelpAPI.YelpAPICLI yaCli = getYaCli();
@@ -114,6 +124,9 @@ public class YelpRetriever implements DsRetriever {
         }
         if (StringUtils.isNotBlank(prefer)) {
             pres = prefer.split(",");
+        }
+        if (StringUtils.isNotBlank(nopre)) {
+            nps = nopre.split(",");
         }
 
         int cnt = 0;
@@ -169,6 +182,13 @@ public class YelpRetriever implements DsRetriever {
                         if (cats.contains(pre) || id.contains(pre)) {
                             logger.info(id + " preferred.");
                             adjust += 0.5;
+                            break;
+                        }
+                    }
+                    for (String np : nps) {
+                        if (cats.contains(np) || id.contains(np)) {
+                            logger.info(id + " hated.");
+                            adjust -= 1;
                             break;
                         }
                     }

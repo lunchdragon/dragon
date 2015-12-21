@@ -5,6 +5,7 @@ import dragon.comm.Pair;
 import dragon.model.job.Schedule;
 import dragon.service.*;
 import dragon.model.food.*;
+import dragon.service.sec.SecureContexts;
 import dragon.utils.BeanFinder;
 
 import javax.ws.rs.*;
@@ -126,6 +127,7 @@ public class BizRest {
         v.setRecId(id);
         v.setResult(res);
         v.setEmail(mail);
+        v.setIp(SecureContexts.getRemoteAddr());
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
 
         if(t.vote(v, true)){

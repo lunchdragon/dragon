@@ -7,10 +7,6 @@ import javax.servlet.http.HttpServlet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 
-/**
- *
- * @author mli
- */
 public class InitServlet extends HttpServlet {
 
     @Override

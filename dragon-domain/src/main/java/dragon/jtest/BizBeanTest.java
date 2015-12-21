@@ -9,12 +9,16 @@ import dragon.utils.DbHelper;
 import dragon.model.food.*;
 import dragon.service.BizBean;
 import dragon.service.BizIntf;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.*;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -32,7 +36,7 @@ public class BizBeanTest {
 
     static final String TESTID = "unITtEsT";
 
-    @BeforeClass
+//    @BeforeClass
     public static void init() {
         ConfigHelper.instance();
         logger.info("Adding test groups...");
@@ -54,7 +58,7 @@ public class BizBeanTest {
         }
     }
 
-    @AfterClass
+//    @AfterClass
     public static void cleanup() {
         //clean up test data
         int cnt = DbHelper.runUpdate2(null, "delete from dragon_group_user where g_id in (select id from dragon_group where name like ?)", TESTID + "%");
@@ -237,7 +241,7 @@ public class BizBeanTest {
         }
     }
 
-    @Ignore
+//    @Ignore
     @Test
     public void testSaveSch() {
         System.out.println("testSaveSchedule...");
@@ -386,6 +390,7 @@ public class BizBeanTest {
         String src = "aaa,";
         src.substring(0, src.length() - 1);
         System.out.println(src.substring(0, src.length()-1));
+        System.out.println( 1/Math.pow(0, 1));
     }
 
     private Vote.Result getRandomVote() {
