@@ -32,7 +32,7 @@ public class EmailQueue {
             String pwd = ConfigHelper.instance().getConfig("mailpwd");
 
             MailSender ms = new MailSender(server, Integer.parseInt(port), user, pwd, true);
-            ms.sendHtmlContent(to, "", "lin.cheng@accelops.com", title, body);
+            ms.sendHtmlContent(to, "", user, title, body);
 
         } catch (Exception e) {
             logger.error("", e);

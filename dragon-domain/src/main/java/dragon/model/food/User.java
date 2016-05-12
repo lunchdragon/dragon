@@ -1,4 +1,4 @@
-package dragon.model.food;
+ package dragon.model.food;
 
 /**
  * Created by lin.cheng on 6/18/15.

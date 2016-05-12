@@ -7,6 +7,7 @@ import dragon.service.*;
 import dragon.model.food.*;
 import dragon.service.sec.SecureContexts;
 import dragon.utils.BeanFinder;
+import dragon.utils.DbHelper;
 
 import javax.ws.rs.*;
 import java.util.ArrayList;
@@ -120,7 +121,8 @@ public class BizRest {
 
     @Path("vote")
     @GET
-    public String vote(@QueryParam("id") Long id, @QueryParam("mail") String mail, @QueryParam("vote") int vote) {
+    public String vote(@QueryParam("id") Long id, @QueryParam("mail") String mail,
+                       @QueryParam("vote") int vote, @QueryParam("x") boolean x) {
 
         Vote.Result res = Vote.Result.values()[vote];
         Vote v = new Vote();
@@ -130,11 +132,7 @@ public class BizRest {
         v.setIp(SecureContexts.getRemoteAddr());
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
 
-        if(t.vote(v, true)){
-            return "Succeed!";
-        } else{
-            return "Error!";
-        }
+        return t.vote(v, true, x);
     }
 
     @Path("sec")
@@ -143,6 +141,15 @@ public class BizRest {
         final BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         String ret = t.saveSecret(key, value);
         return ret;
+    }
+
+    @Path("pia")
+    @GET
+    public void pia( @QueryParam("gid") Long gid) {
+        if(gid == null){
+            gid = 29229L;
+        }
+        DbHelper.runUpdate2(null, "update dragon_schedule set active=NOT active where gid=?", gid);
     }
 
     private String toJson(Object obj){

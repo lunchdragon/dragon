@@ -12,6 +12,7 @@ import dragon.model.job.Schedule;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,7 +31,7 @@ public class BizBean implements BizIntf {
 
     static Log logger = LogFactory.getLog(BizBean.class);
     static final String KEY = "KEY";
-    static final Double GRAVITY = 0.5;
+    static final Double GRAVITY = 0.45;
     static final Integer BASE = 0;
 
     public long tt1, tt2, tt3, tt4, tt5, tt6, tt7;
@@ -113,24 +114,21 @@ public class BizBean implements BizIntf {
     }
 
     //Not thread safe
-    public Boolean vote(Vote v, Boolean resend) {
+    public String vote(Vote v, Boolean resend, Boolean admin) {
 
         Long t1 = System.currentTimeMillis();
-
         logger.info(v.toString());
 
         Long recId = v.getRecId();
         Record rec = getRecord(recId);
         if (rec == null) {
-            logger.error("Record not found: " + recId);
-            return false;
+            return "Record not found: " + recId;
         }
 
         Long resId = rec.getResid();
         Restaurant res = getRestaurant(new Pair<String, Object>("id", resId));
         if (res == null) {
-            logger.error("Restaurant not found: " + resId);
-            return false;
+            return "Restaurant not found: " + resId;
         }
 
         Long t2 = System.currentTimeMillis();
@@ -143,33 +141,38 @@ public class BizBean implements BizIntf {
         tt5 += t3-t2;
         logger.debug("saveVote takes: " + (t3 - t2));
 
-        if (v.getResult() == Vote.Result.killme && resend) {
+        if (v.getResult() == Vote.Result.killme) {
 
-            if (!rec.getVeto() && System.currentTimeMillis() - rec.getGoTime() < 1000 * 60 * 60) {//within 60 mins
+            String cr = admin ? "@管理员 " : checkVeto(rec);
+            if (cr != null) {
+                if(!cr.contains("@")){
+                    return cr;
+                }
+
                 rec.setVeto(true);
                 try {
                     saveRecord(rec);
                 } catch (Exception e) {
                     logger.error(e.getMessage());
-                    return false;
+                    return e.getMessage();
                 }
                 Long t4 = System.currentTimeMillis();
                 tt6 += t4-t3;
                 logger.debug("saveRecord takes: " + (t4 - t3));
 
                 //re-pickup
-                sendLunchEmail("重新选一家，因为" + v.getEmail().split("@")[0] + "表示打死都不去。", rec.getgId());
-
-                Long t5 = System.currentTimeMillis();
-                tt7 += t5-t4;
-                logger.debug("Email takes: " + (t5 - t4));
+                if(resend) {
+                    sendLunchEmail("重新选一家，因为" + cr + "表示打死都不去。", rec.getgId());
+                    Long t5 = System.currentTimeMillis();
+                    tt7 += t5 - t4;
+                    logger.debug("Email takes: " + (t5 - t4));
+                }
             } else {
-                logger.info("Already vetoed or time passed.");
-                return false;
+                return "Already vetoed or time passed.";
             }
         }
 
-        return true;
+        return "Succeed!";
     }
 
     public List<Restaurant> getRestaurants(String condition) {
@@ -520,8 +523,7 @@ public class BizBean implements BizIntf {
 
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱</a>").append("<br>");
         sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("坑爹</a>").append("<br>");
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a>")
-                .append(" (不搭伙的求别闹:( )").append("<br><br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a>").append("<br><br>");
         sb.append("<a href=\'").append(url + "group/unsub?mail=" + mail).append("&gid=").append(gid).append("\'/>").append("取关!</a>").append("<br>");
 
         return sb.toString();
@@ -765,6 +767,29 @@ public class BizBean implements BizIntf {
             }
         }
         return ret;
+    }
+
+    private String checkVeto(Record rec){
+        if(rec == null || rec.getVeto() || System.currentTimeMillis() - rec.getGoTime() > 1000 * 60 * 60){
+            return null;
+        }
+
+        int vetoThreshold = 2; //TODO
+        List<String> mails = DbHelper.getFirstColumnList(null, "select email from dragon_vote where rec_id=? and vote=0", rec.getId());
+        if(CollectionUtils.isEmpty(mails)){
+            return null;
+        }
+        if(mails.size() >= vetoThreshold){
+            return StringUtils.join(mails, ",");
+        } else {// 1
+            return "投好了, 再有" + (vetoThreshold - mails.size()) + "个人投票就换一家.";
+//            if(null == DbHelper.runWithSingleResult("select * from dragon_user u,dragon_group_user gu where " +
+//                    "gu.admin=true and gu.u_id=u.id and gu.g_id=" + rec.getgId() + " and u.email='" + mails.get(0) + "'", null)){
+//                return "投好了, 再有" + (vetoThreshold - mails.size()) + "个人投票就换一家.";
+//            } else {
+//                return "@管理员 ";
+//            }
+        }
     }
 
     static class ValueComparator implements Comparator<String> {

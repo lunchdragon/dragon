@@ -19,7 +19,7 @@ public interface BizIntf {
     List<Restaurant> getRestaurants(Long gid);
     Long saveRestaurant(Restaurant r, Connection conn);
     int importRestaurants(String csv);
-    Boolean vote(Vote v, Boolean resend);
+    String vote(Vote v, Boolean resend, Boolean admin);
     void sendLunchEmail(String reason, Long gid);
     Map<String, Stat> stat(long gid, long exId, Boolean sort);
     Map<String, Stat> stat2(long gid, int days);
