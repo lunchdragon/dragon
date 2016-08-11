@@ -80,7 +80,7 @@ public class MailSender {
         }
     }
 
-    public void sendHtmlContent(String to, String cc, String from, String subject, String content) throws IOException {
+    public void sendHtmlContent(String to, String cc, String from, String subject, String content) throws IOException, MessagingException {
         Session session = startSession();
         try {
             Message msg = new MimeMessage(session);
@@ -89,6 +89,7 @@ public class MailSender {
             sendEmail(session, msg);
         } catch (MessagingException mex) {
             emailExceptionHandler(mex);
+            throw mex;
         }
     }
 
@@ -98,19 +99,27 @@ public class MailSender {
         props.put("mail.smtp.connectiontimeout", "30000");
         props.put("mail.smtp.timeout", "30000");
         props.put("mail.smtp.ssl.trust", host);
+        props.put("mail.smtp.auth", "true");
 
         if (port > 0) {
             props.put("mail.smtp.port", port);
         }
-        if (user != null) {
-            props.put("mail.smtp.user", user);
-            props.put("mail.smtp.auth", "true");
-        }
+//        if (user != null) {
+//            props.put("mail.smtp.user", user);
+//            props.put("mail.smtp.auth", "true");
+//            props.put("mail.smtp.password", password);
+//        }
         if (tlsFlag) {
-            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.starttls.enable", true);
         }
         //props.put("mail.debug", "true");
-        Session session = Session.getInstance(props);
+//        Session session = Session.getInstance(props);
+        Session session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(user, password);
+                    }
+                });
         return session;
     }
 
@@ -156,13 +165,22 @@ public class MailSender {
 
         if (cc != null && cc.length() > 0) {
             cc = cc.replaceAll(";", ",");
-            msg.setRecipients(Message.RecipientType.CC,
+            msg.setRecipients(Message.RecipientType.BCC,
                     InternetAddress.parse(cc, true));
         }
 
         msg.setSubject(subject);
         msg.setSentDate(new Date());
 
+        msg.saveChanges();
+    }
+
+    private void setBcc(Message msg, String bcc) throws MessagingException{
+        if (bcc != null && bcc.length() > 0) {
+            bcc = bcc.replaceAll(";", ",");
+            msg.setRecipients(Message.RecipientType.BCC,
+                    InternetAddress.parse(bcc, true));
+        }
         msg.saveChanges();
     }
 

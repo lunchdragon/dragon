@@ -31,7 +31,7 @@ public class BizBean implements BizIntf {
 
     static Log logger = LogFactory.getLog(BizBean.class);
     static final String KEY = "KEY";
-    static final Double GRAVITY = 0.45;
+    static final Double GRAVITY = 0.35;
     static final Integer BASE = 0;
 
     public long tt1, tt2, tt3, tt4, tt5, tt6, tt7;
@@ -162,7 +162,7 @@ public class BizBean implements BizIntf {
 
                 //re-pickup
                 if(resend) {
-                    sendLunchEmail("重新选一家，因为" + cr + "表示打死都不去。", rec.getgId());
+                    sendLunchEmail("重新选一家，因为 " + cr + " 表示想换一家 ╮(╯-╰)╭", rec.getgId());
                     Long t5 = System.currentTimeMillis();
                     tt7 += t5 - t4;
                     logger.debug("Email takes: " + (t5 - t4));
@@ -523,7 +523,7 @@ public class BizBean implements BizIntf {
 
         sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱</a>").append("<br>");
         sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("坑爹</a>").append("<br>");
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("打死都不去").append("</a>").append("<br><br>");
+        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("换一家我就去").append("</a>").append("<br><br>");
         sb.append("<a href=\'").append(url + "group/unsub?mail=" + mail).append("&gid=").append(gid).append("\'/>").append("取关!</a>").append("<br>");
 
         return sb.toString();

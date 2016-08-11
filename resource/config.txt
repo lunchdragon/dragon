@@ -1,16 +1,16 @@
-server=192.168.65.156
+server=10.10.121.156
 port=8080
 
 db=ambari
 dbuser=ambari
-dbpwd=ambari
+dbpwd=en.dbpwd
 
-mail=smtpx16.msoutlookonline.net
-mailport=25
-mailuser=notify@accelops.com
+mail=smtp.gmail.com
+mailport=587
+mailuser=hahalunch@gmail.com
 mailpwd=en.mailpwd
 
 distance=4200
 reviews=90
 
-excludepre=5
+excludepre=8

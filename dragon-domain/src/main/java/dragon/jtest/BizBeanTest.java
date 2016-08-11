@@ -1,5 +1,7 @@
 package dragon.jtest;
 
+import com.google.common.base.Preconditions;
+import dragon.comm.MailSender;
 import dragon.comm.Utils;
 import dragon.model.food.*;
 import dragon.model.job.Schedule;
@@ -10,6 +12,7 @@ import dragon.service.GroupIntf;
 import dragon.service.sec.SecureContexts;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,14 +21,16 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -40,7 +45,7 @@ public class BizBeanTest {
 
     static final String TESTID = "unITtEsT";
 
-    @BeforeClass
+//    @BeforeClass
     public static void init() {
         ConfigHelper.instance();
         logger.info("Adding test groups...");
@@ -62,7 +67,7 @@ public class BizBeanTest {
         }
     }
 
-    @AfterClass
+//    @AfterClass
     public static void cleanup() {
         //clean up test data
         int cnt = DbHelper.runUpdate2(null, "delete from dragon_group_user where g_id in (select id from dragon_group where name like ?)", TESTID + "%");
@@ -402,6 +407,20 @@ public class BizBeanTest {
     }
 
     @Test
+    public void testEmail(){
+        MailSender ms = new MailSender("smtp.gmail.com", 587, "hahalunch@gmail.com", "xxx", true);
+        try {
+            for(int i= 0; i<2; i++) {
+                ms.sendHtmlContent("", "lcheng@fortinet.com", "hahalunch@gmail.com", "bb", "haha");
+            }
+        } catch (Exception e) {
+            assertNull(e);
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
     public void whatever(){
         String src = "/phoenix/html/index.html#/incidents/123";
         String[] arr = src.split("#/");
@@ -409,6 +428,45 @@ public class BizBeanTest {
         System.out.println(arr.length);
         System.out.println(arr[1]);
         System.out.println( 1/Math.pow(0, 1));
+
+        long a = 5;
+        long b = 2;
+        double x = ((new Date().getTime()/1000000.0 -  a)/1000)/b;
+        System.out.println(x > 733);
+
+//        Preconditions.checkArgument(src.length()<1, "aaa");
+
+        List<Object> list = new ArrayList<Object>();
+        for (Number n:producer()) {
+            list.add(n);
+        }
+        consumer(list);
+
+        Long ll = null;
+        src = src.substring(0, src.length()-1);
+        if(ObjectUtils.equals(ll, 0))
+        System.out.println(src);
+
+        List<Object> l2 = new ArrayList(3);
+        l2.add(0, 1);
+        l2.add(1,"");
+
+    }
+
+    public void consumer(List<? super Number> list) {
+        for (int i=0;i<3;i++) {
+            list.add(i);
+        }
+        list.add(1.0);
+        for(Object n:list){
+            System.out.println(n);
+        }
+    }
+
+    public List<? extends Number> producer() {
+        List<Integer> ret = new ArrayList<Integer>();
+        ret.add(1);
+        return ret;
     }
 
     @Test

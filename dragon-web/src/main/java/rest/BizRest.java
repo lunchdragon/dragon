@@ -35,7 +35,7 @@ public class BizRest {
     }
 
     @Path("save")
-    @PUT
+    @POST
     public String add(String json, @QueryParam("gid") Long gid) {
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
@@ -93,7 +93,7 @@ public class BizRest {
     }
 
     @Path("schedule")
-    @PUT
+    @POST
     public String saveSch(String json) {
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         Gson gs = new Gson();
@@ -104,7 +104,7 @@ public class BizRest {
     }
 
     @Path("xadd")
-    @PUT
+    @POST
     public String batchAdd(String csv) {
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         int cnt = t.importRestaurants(csv);

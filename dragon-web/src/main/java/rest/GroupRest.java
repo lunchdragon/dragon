@@ -21,7 +21,7 @@ import java.util.List;
 public class GroupRest {
 
     @Path("save")
-    @PUT
+    @POST
     public String add(String json, @QueryParam("apply") Boolean apply, @QueryParam("mail") String mail) {
         GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
 
