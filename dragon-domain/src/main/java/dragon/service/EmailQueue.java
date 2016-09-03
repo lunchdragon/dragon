@@ -30,6 +30,10 @@ public class EmailQueue {
             String port = ConfigHelper.instance().getConfig("mailport");
             String user = ConfigHelper.instance().getConfig("mailuser");
             String pwd = ConfigHelper.instance().getConfig("mailpwd");
+            if(pwd.startsWith(ConfigHelper.EN_PF)){
+                BizIntf t = new BizBean();
+                pwd = t.getSecret(pwd);
+            }
 
             MailSender ms = new MailSender(server, Integer.parseInt(port), user, pwd, true);
             ms.sendHtmlContent(to, "", user, title, body);

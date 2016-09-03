@@ -22,16 +22,26 @@ public class BizRest {
 
     @Path("what")
     @GET
-    public String what(@QueryParam("gid") Long gid) {
+    public String what(@QueryParam("reason")String reason,
+                       @QueryParam("gid") Long gid,
+                       @QueryParam("notify") boolean notify) {
+
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        Restaurant r = t.pickRestaurant(gid);
+        Restaurant r = t.pickup(reason, gid, notify);
+        return toJson(r);
+    }
 
-        Record rec = new Record();
-        rec.setResid(r.getId());
-        rec.setgId(gid);
-        rec = t.saveRecord(rec);
+    @Path("summary")
+    @GET
+    public String summary(@QueryParam("gid") Long gid) {
 
-        return toJson(rec);
+        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+        try {
+            t.sendSummaryEmail(gid);
+        } catch (Exception e) {
+            return "Failed:" + e.getMessage();
+        }
+        return toJson("OK");
     }
 
     @Path("save")
@@ -122,7 +132,7 @@ public class BizRest {
     @Path("vote")
     @GET
     public String vote(@QueryParam("id") Long id, @QueryParam("mail") String mail,
-                       @QueryParam("vote") int vote, @QueryParam("x") boolean x) {
+                       @QueryParam("vote") int vote, @QueryParam("nosend") boolean nosend, @QueryParam("x") boolean x) {
 
         Vote.Result res = Vote.Result.values()[vote];
         Vote v = new Vote();
@@ -132,7 +142,7 @@ public class BizRest {
         v.setIp(SecureContexts.getRemoteAddr());
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
 
-        return t.vote(v, true, x);
+        return t.vote(v, !nosend, x);
     }
 
     @Path("sec")

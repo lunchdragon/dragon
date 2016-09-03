@@ -5,6 +5,7 @@ import dragon.model.job.Schedule;
 import dragon.service.BizBean;
 import dragon.service.BizIntf;
 import dragon.utils.BeanFinder;
+import dragon.utils.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +37,12 @@ public class CustJob extends AbstractJob {
     }
 
     protected void processJob(JobExecutionContext ctx) throws SchedulerException {
+
+        String isJobMater = ConfigHelper.instance().getConfig("isJobMater");
+        if(!"true".equalsIgnoreCase(isJobMater)){
+            logger.info("Not a job master.");
+            return;
+        }
 
         if (t == null) {
             t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);

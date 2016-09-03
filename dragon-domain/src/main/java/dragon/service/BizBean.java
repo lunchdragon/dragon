@@ -162,7 +162,7 @@ public class BizBean implements BizIntf {
 
                 //re-pickup
                 if(resend) {
-                    sendLunchEmail("重新选一家，因为 " + cr + " 表示想换一家 ╮(╯-╰)╭", rec.getgId());
+                    pickup("重新选一家，因为 " + cr + " 表示想换一家 ╮(╯-╰)╭", rec.getgId(), true);
                     Long t5 = System.currentTimeMillis();
                     tt7 += t5 - t4;
                     logger.debug("Email takes: " + (t5 - t4));
@@ -253,7 +253,7 @@ public class BizBean implements BizIntf {
         for (Restaurant r : list) {
 
             if (preIds.contains(r.getId()) && list.size() > preIds.size()) {
-                logger.info(r.getName() + " skipped.");
+                logger.debug(r.getName() + " skipped.");
                 continue;
             }
 
@@ -271,7 +271,7 @@ public class BizBean implements BizIntf {
         return null;
     }
 
-    public void sendLunchEmail(String reason, Long gid) {
+    public Restaurant pickup(String reason, Long gid, boolean notify) {
 
         logger.info("Sending lunch mail for: " + gid);
         List<String> mails = getMails(gid);
@@ -283,13 +283,17 @@ public class BizBean implements BizIntf {
             Restaurant r = pickRestaurant(gid);
             if (r == null) {
                 logger.info("Biz not found, no email sent.");
-                return;
+                return null;
             }
 
             Record rec = new Record();
             rec.setResid(r.getId());
             rec.setgId(gid);
             Long id = saveRecord(rec).getId();
+
+            if(!notify){
+                return r;
+            }
 
             String gname = DbHelper.runWithSingleResult2(null, "select alias from dragon_group where id=?", gid);
 
@@ -318,7 +322,9 @@ public class BizBean implements BizIntf {
                     }
                 }
             }
+            return r;
         }
+        return null;
     }
 
     public Map<String, Stat> stat(long gid, long exId, Boolean sort) {
@@ -721,10 +727,10 @@ public class BizBean implements BizIntf {
                 conn = DbHelper.getConn();
             }
 
-            Object obj = DbHelper.runWithSingleResult2(conn, "select vote from dragon_vote where (email = ? or ip = ?) and rec_id =?", mail, ip, rid);
+            Object obj = DbHelper.runWithSingleResult2(conn, "select vote from dragon_vote where email = ? and rec_id =?", mail, rid);
             if (obj != null) {
                 if (res != (Integer) obj) {
-                    DbHelper.runUpdate2(conn, "update dragon_vote set vote=?,ip=? where (email = ? or ip = ?) and rec_id=?", res, ip, mail, ip, rid);
+                    DbHelper.runUpdate2(conn, "update dragon_vote set vote=?,ip=? where email = ? and rec_id=?", res, ip, mail, rid);
                 } else {
                     return false;
                 }
@@ -790,6 +796,82 @@ public class BizBean implements BizIntf {
 //                return "@管理员 ";
 //            }
         }
+    }
+
+    public void sendSummaryEmail(Long gid) throws Exception {
+
+        logger.info("Sending weekly mail for: " + gid);
+
+        List<String> mails = getMails(gid);
+
+        if (mails != null && mails.size()>0) {
+
+            logger.info("Valid mails found.");
+
+            String gname = DbHelper.runWithSingleResult2(null, "select alias from dragon_group where id=?", gid);
+
+            QueueHelper qh = new QueueHelper();
+
+            try {
+                qh.createDeliveryConnection(100);
+                qh.initializeMessage();
+                qh.initializeQueue("jms/EmailQueue");
+                qh.addParameter("title", "[" + gname + "] " + "Summary");
+                qh.addParameter("body", buildBody(gid));
+
+                for (String mail : mails) {
+                    qh.addParameter("to", mail);
+                    qh.sendMsg();
+                    logger.info("Msg sent to queue:" + gname + " -> " + mail);
+                }
+            } finally {
+                if (qh != null) {
+                    try {
+                        qh.close();
+                    } catch (Exception ex) {
+                        logger.error("", ex);
+                    }
+                }
+            }
+        }
+    }
+
+    private String buildBody(Long gid){
+
+        StringBuilder sb = new StringBuilder();
+
+        Map<String, Stat> ss = stat2(gid, 7);
+        sb.append(buildTable(ss, "[Last 7 Days]"));
+
+        ss = stat2(gid, 30);
+        sb.append(buildTable(ss, "[Last 30 Days]"));
+
+        ss = stat(gid, 0, true);
+        sb.append(buildTable(ss, "[All Time]"));
+
+        return sb.toString();
+    }
+
+    private String buildTable(Map<String, Stat> ss, String title){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("<h3>" + title +  "</h3>");
+        sb.append("<table border=\"1px\" cellspacing=\"1px\" style=\"border-collapse:collapse\"  width=\"800\">");
+        sb.append("<tr><td>name</td><td>factor</td><td>score</td><td>visited</td><td>liked</td><td>disliked</td><td>vetoed</td></tr>");
+        for(Stat s:ss.values()){
+            sb.append("<tr>");
+            sb.append("<td>" +  s.getName() + "</td>");
+            sb.append("<td>" +  s.getFactor() + "</td>");
+            sb.append("<td>" +  s.getScore() + "</td>");
+            sb.append("<td>" +  s.getVisited() + "</td>");
+            sb.append("<td>" +  s.getLiked() + "</td>");
+            sb.append("<td>" +  s.getDisliked() + "</td>");
+            sb.append("<td>" +  s.getVetoed() + "</td>");
+            sb.append("</tr>");
+        }
+        sb.append("</table>");
+
+        return sb.toString();
     }
 
     static class ValueComparator implements Comparator<String> {

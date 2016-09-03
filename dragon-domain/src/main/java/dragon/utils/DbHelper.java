@@ -27,7 +27,7 @@ public class DbHelper {
             synchronized(lock){
                 if(ds == null){
                     //TODO - lookup from connection pool
-                    String server = ConfigHelper.instance().getConfig("server");
+                    String server = ConfigHelper.instance().getConfig("dbserver");
                     String db = ConfigHelper.instance().getConfig("db");
                     String dbuser = ConfigHelper.instance().getConfig("dbuser");
                     String dbpwd = ConfigHelper.instance().getConfig("dbpwd");

@@ -26,6 +26,14 @@ public class EasyHttpClient {
         this(server, port, true, false);
     }
 
+    public EasyHttpClient(String server, int port, boolean useHttps) {
+        this.server = server;
+        this.port = port;
+        this.useHttps = useHttps;
+
+        init();
+    }
+
     public EasyHttpClient(String server, int port, boolean useHttps, boolean basic) {
         this.server = server;
         this.port = port;

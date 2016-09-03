@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class ConfigHelper {
     static final String PATH = "/opt/dragon/config.txt";
-    static final String EN_PF = "en.";
+    static public final String EN_PF = "en.";
     static volatile long fileTimestamp = 0L;
     static volatile boolean loading = false;
 
@@ -51,7 +51,6 @@ public class ConfigHelper {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(PATH)));
             String line = null;
-            BizIntf t = new BizBean();
 
             map.clear();
 
@@ -68,10 +67,6 @@ public class ConfigHelper {
                     property = new String[2];
                     property[0] = line.substring(0, index).trim();
                     value = line.substring(index + 1).trim();
-
-                    if(value.startsWith(EN_PF)){
-                        value = t.getSecret(value);//requires DB config - make sure DB config is loaded already
-                    }
                 } else {
                     property = null;
                 }

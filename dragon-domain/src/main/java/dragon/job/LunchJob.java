@@ -1,45 +1,33 @@
 package dragon.job;
 
-import dragon.utils.BeanFinder;
-import dragon.service.BizIntf;
-import dragon.service.BizBean;
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 
 /**
  * Created by lin.cheng on 6/18/15.
  */
 public class LunchJob extends AbstractJob {
 
-    BizIntf t = null;
+    static Log logger = LogFactory.getLog(LunchJob.class);
 
     public LunchJob() {
         super();
     }
 
-    public LunchJob(BizIntf t) {
-        super();
-        this.t = t;
-    }
-
     @Override
-    protected void processJob(JobExecutionContext ctx) throws JobExecutionException {
+    protected void processJob(JobExecutionContext ctx) throws Exception {
 
         LogFactory.getLog(LunchJob.class).info("job executing...");
-
-        if(t == null){
-            t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        }
 
         JobDataMap map = ctx.getJobDetail().getJobDataMap();
         Long grp = map.getLongValue("gid");
 
-        if(grp == null) {
-//            t.sendLunchEmail(null);
-        } else {
-            t.sendLunchEmail(null, grp);
+        if(grp != null) {
+            String uri = BASE + "biz/what?gid=" + grp + "&notify=true";
+            String ret = getHttpClient().executeGet(uri);
+            logger.info(ret);
         }
 
     }
