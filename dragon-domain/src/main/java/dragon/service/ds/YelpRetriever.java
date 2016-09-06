@@ -21,6 +21,8 @@ import org.json.simple.parser.ParseException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by lin.cheng
@@ -102,13 +104,15 @@ public class YelpRetriever implements DsRetriever {
         this.nopre = nopre;
     }
 
-    public int searchAndImport(Long gid) {
+    public List<Restaurant> searchAndImport(Long gid) {
+
+        List<Restaurant> ret = new ArrayList<Restaurant>();
 
         if(gid != null){
             Group group = gb.getGroup(new Pair<String, Object>("id", gid));
             if(group == null){
                 logger.error("Group not found: " + gid);
-                return -1;
+                return ret;
             }
             applySettings(group.getPreference());
         }
@@ -141,7 +145,7 @@ public class YelpRetriever implements DsRetriever {
                 response = (JSONObject) parser.parse(json);
             } catch (ParseException pe) {
                 logger.error("Error: could not parse JSON response:" + json);
-                return -1;
+                return ret;
             }
 
             JSONArray businesses = (JSONArray) response.get("businesses");
@@ -207,12 +211,14 @@ public class YelpRetriever implements DsRetriever {
 
                     Restaurant r = new Restaurant(id, bo.get("url").toString(), factor, name, cat);
                     Long rid = eb.saveRestaurant(r, conn);
+                    r.setId(rid);
 
                     if(gid != null && gid > 0) {
                         gb.saveRestaurantToGroup(rid, gid, factorForGrp);
                     }
 
                     cnt++;
+                    ret.add(r);
                 }
             } catch (SQLException e) {
                 logger.error("", e);
@@ -222,7 +228,7 @@ public class YelpRetriever implements DsRetriever {
         }
 
         logger.info(String.format("Total : %s businesses found.", cnt));
-        return cnt;
+        return ret;
     }
 
     public Restaurant addByBid(Long gid, String bid){

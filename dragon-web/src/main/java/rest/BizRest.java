@@ -1,6 +1,6 @@
 package rest;
 
-import com.google.gson.Gson;
+import dragon.comm.JSONHelper;
 import dragon.comm.Pair;
 import dragon.model.job.Schedule;
 import dragon.service.*;
@@ -18,17 +18,21 @@ import java.util.List;
  */
 @Path("/biz")
 @Consumes("text/xml")
-public class BizRest {
+public class BizRest extends BaseRest {
 
     @Path("what")
     @GET
-    public String what(@QueryParam("reason")String reason,
+    public String what(@QueryParam("reason") String reason,
                        @QueryParam("gid") Long gid,
                        @QueryParam("notify") boolean notify) {
 
-        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        Restaurant r = t.pickup(reason, gid, notify);
-        return toJson(r);
+        try {
+            BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            Restaurant r = t.pickup(reason, gid, notify);
+            return JSONHelper.toJson(r);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
     }
 
     @Path("summary")
@@ -38,95 +42,151 @@ public class BizRest {
         BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
         try {
             t.sendSummaryEmail(gid);
+            return JSONHelper.toJson("OK");
         } catch (Exception e) {
-            return "Failed:" + e.getMessage();
+            return createErrorResponse(e);
         }
-        return toJson("OK");
     }
 
     @Path("save")
     @POST
     public String add(String json, @QueryParam("gid") Long gid) {
-        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
-        Gson gs = new Gson();
-        Restaurant r = gs.fromJson(json, Restaurant.class);
-        Long rid = t.saveRestaurant(r, null);
-        if(gid != null && gid > 0) {
-            gb.saveRestaurantToGroup(rid, gid, r.getFactor());
-        }
+        try {
+            BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
+            Restaurant r = JSONHelper.fromJson2(json, Restaurant.class);
+            Long rid = t.saveRestaurant(r, null);
+            if (gid != null && gid > 0) {
+                gb.saveRestaurantToGroup(rid, gid, r.getFactor());
+            }
 
-        return toJson(r);
+            return JSONHelper.toJson(r);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
     }
 
     @Path("del")
     @DELETE
     public String del(@QueryParam("rid") Long rid, @QueryParam("gid") Long gid) {
-        GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
-        int cnt = gb.removeRestaurantFromGroup(rid, gid);
-        return cnt + "";
+        try {
+            GroupIntf gb = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
+            int cnt = gb.removeRestaurantFromGroup(rid, gid);
+            return cnt + "";
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
     }
 
     @Path("{key}")
     @GET
     public String item(@PathParam("key") String key) {
-        BizIntf bb = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        Restaurant r = bb.getRestaurant(new Pair<String, Object>("name", key));
-        Gson gs = new Gson();
-        return gs.toJson(r);
+        try {
+            BizIntf bb = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            Restaurant r = bb.getRestaurant(new Pair<String, Object>("name", key));
+            return JSONHelper.toJson(r);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
+    }
+
+    @Path("/record/{id}")
+    @GET
+    public String getRecord(@PathParam("id") Long rid) {
+        try {
+            BizIntf bb = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            Record r = bb.getRecord(rid);
+            return JSONHelper.toJson(r);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
+    }
+
+    @Path("/restaurant/{id}")
+    @GET
+    public String getRestaurant(@PathParam("id") Long rid) {
+        try {
+            BizIntf bb = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            Restaurant r = bb.getRestaurantById(rid);
+            return JSONHelper.toJson(r);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
     }
 
     @Path("all")
     @GET
     public String view(@QueryParam("gid") Long gid) {
-        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        List<Restaurant> rs = new ArrayList<Restaurant>();
-        if(gid != null && gid > 0) {
-            rs = t.getRestaurants(gid);
-        } else {
-            rs = t.getRestaurants("");
+        try {
+            BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            List<Restaurant> rs = new ArrayList<Restaurant>();
+            if (gid != null && gid > 0) {
+                rs = t.getRestaurants(gid);
+            } else {
+                rs = t.getRestaurants("");
+            }
+            return JSONHelper.toJson(rs);
+        } catch (Exception e) {
+            return createErrorResponse(e);
         }
-        return toJson(rs);
     }
 
     @Path("schedule")
     @GET
     public String getSch(@QueryParam("gid") Long gid) {
-        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        List<Schedule> rs = new ArrayList<Schedule>();
-        if(gid != null && gid > 0) {
-            rs = t.getSchedules("gid=" + gid);
-        } else {
-            rs = t.getSchedules(null);
+        try {
+            BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            List<Schedule> rs = new ArrayList<Schedule>();
+            if (gid != null && gid > 0) {
+                rs = t.getSchedules("gid=" + gid);
+            } else {
+                rs = t.getSchedules(null);
+            }
+            return JSONHelper.toJson(rs);
+        } catch (Exception e) {
+            return createErrorResponse(e);
         }
-        return toJson(rs);
     }
 
-    @Path("schedule")
+    @Path("schedule/save")
     @POST
     public String saveSch(String json) {
-        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        Gson gs = new Gson();
-        Schedule r = gs.fromJson(json, Schedule.class);
-        r = t.saveSchedule(r);
+        try {
+            BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            Schedule r = JSONHelper.fromJson2(json, Schedule.class);
+            r = t.saveSchedule(r);
 
-        return toJson(r);
+            return JSONHelper.toJson(r);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
+
     }
 
     @Path("xadd")
     @POST
     public String batchAdd(String csv) {
-        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        int cnt = t.importRestaurants(csv);
-        return cnt + " items updated.";
+        try {
+            BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            int cnt = t.importRestaurants(csv);
+            return cnt + " items updated.";
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
+
     }
 
     @Path("yadd")
     @GET
     public String addByYelpId(@QueryParam("yid") String yid, @QueryParam("gid") Long gid) {
-        GroupIntf t = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
-        Restaurant r = t.addByBizId(yid, gid);
-        return toJson(r);
+        try {
+            GroupIntf t = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
+            Restaurant r = t.addByBizId(yid, gid);
+            return JSONHelper.toJson(r);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
+
     }
 
     @Path("vote")
@@ -134,37 +194,41 @@ public class BizRest {
     public String vote(@QueryParam("id") Long id, @QueryParam("mail") String mail,
                        @QueryParam("vote") int vote, @QueryParam("nosend") boolean nosend, @QueryParam("x") boolean x) {
 
-        Vote.Result res = Vote.Result.values()[vote];
-        Vote v = new Vote();
-        v.setRecId(id);
-        v.setResult(res);
-        v.setEmail(mail);
-        v.setIp(SecureContexts.getRemoteAddr());
-        BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+        try {
+            Vote.Result res = Vote.Result.values()[vote];
+            Vote v = new Vote();
+            v.setRecId(id);
+            v.setResult(res);
+            v.setEmail(mail);
+            v.setIp(SecureContexts.getRemoteAddr());
+            BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
 
-        return t.vote(v, !nosend, x);
+            return t.vote(v, !nosend, x);
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
+
     }
 
     @Path("sec")
     @GET
     public String sec(@QueryParam("key") final String key, @QueryParam("value") final String value) {
-        final BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
-        String ret = t.saveSecret(key, value);
-        return ret;
+        try {
+            final BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
+            String ret = t.saveSecret(key, value);
+            return ret;
+        } catch (Exception e) {
+            return createErrorResponse(e);
+        }
+
     }
 
     @Path("pia")
     @GET
-    public void pia( @QueryParam("gid") Long gid) {
-        if(gid == null){
+    public void pia(@QueryParam("gid") Long gid) {
+        if (gid == null) {
             gid = 29229L;
         }
         DbHelper.runUpdate2(null, "update dragon_schedule set active=NOT active where gid=?", gid);
     }
-
-    private String toJson(Object obj){
-        Gson gs = new Gson();
-        return gs.toJson(obj);
-    }
-
 }

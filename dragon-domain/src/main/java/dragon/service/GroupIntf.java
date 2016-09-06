@@ -6,6 +6,7 @@ import dragon.model.food.Restaurant;
 import dragon.model.food.User;
 
 import javax.ejb.Local;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -19,6 +20,7 @@ public interface GroupIntf {
     int saveUserToGroup(String email, Long gid, boolean admin);
     int removeUserFromGroup(String email, Long gid);
     int saveRestaurantToGroup(Long rid, Long gid, Long factor);
+    int saveRestaurantToGroupBatch(List<Pair> pair, Long gid) throws Exception;
     int saveRestaurantByName(Long rid, String gname, Long factor);
     int removeRestaurantFromGroup(Long rid, Long gid);
     int applyPreference(Group g);
@@ -27,4 +29,8 @@ public interface GroupIntf {
     List<Group> getGroups(Long uid);
     Group getGroup(Pair<String, Object> p);
     Long saveUser(User u);
+    void loadDependencies(Group g, int limit) throws Exception;
+    User getUser(Long uid);
+    List<User> getUsers(Long uid) throws Exception;
+    Boolean mute(Long gid, boolean mute);
 }

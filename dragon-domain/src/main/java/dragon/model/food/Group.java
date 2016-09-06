@@ -1,5 +1,8 @@
 package dragon.model.food;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by lin.cheng on 7/20/15.
  */
@@ -14,6 +17,9 @@ public class Group {
 
     //transit
     Boolean admin;
+    Map<String, Stat> stats;
+    List<User> users;
+    List<Record> records;
 
     public Group(String name, String preference) {
         this.name = name;
@@ -105,5 +111,29 @@ public class Group {
 
     public void setNoApprove(Boolean noApprove) {
         this.noApprove = noApprove;
+    }
+
+    public Map<String, Stat> getStats() {
+        return stats;
+    }
+
+    public void setStats(Map<String, Stat> stats) {
+        this.stats = stats;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
+    }
+
+    public List<Record> getRecords() {
+        return records;
+    }
+
+    public void setRecords(List<Record> records) {
+        this.records = records;
     }
 }

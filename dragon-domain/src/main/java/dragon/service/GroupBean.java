@@ -1,24 +1,23 @@
 package dragon.service;
 
 import dragon.comm.Pair;
-import dragon.model.food.Group;
-import dragon.model.food.Restaurant;
-import dragon.model.food.User;
+import dragon.model.food.*;
 import dragon.service.ds.DsRetriever;
 import dragon.service.ds.YelpRetriever;
 import dragon.utils.DbHelper;
+import org.apache.commons.collections.comparators.BooleanComparator;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.LongRange;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by lin.cheng on 7/20/15.
@@ -74,7 +73,10 @@ public class GroupBean implements GroupIntf {
         int cnt = 0;
         DsRetriever dr = new YelpRetriever(g.getPreference());
         try {
-            cnt = dr.searchAndImport(g.getId());
+            List<Restaurant> ret = dr.searchAndImport(g.getId());
+            if(ret != null) {
+                cnt = ret.size();
+            }
         } catch (Exception e){
             logger.error("Failed to run data retriever: ", e);
         }
@@ -88,12 +90,11 @@ public class GroupBean implements GroupIntf {
         try {
             conn = DbHelper.getConn();
             PreparedStatement st = null;
-            if(uid != null && uid > 0) {
-                st = conn.prepareStatement("select * from dragon_group g inner join dragon_group_user gu on g.id=gu.g_id where gu.u_id=?)");
-                DbHelper.setParameters(st, uid);
-            } else {
-                st = conn.prepareStatement("select * from dragon_group");
+            if(uid == null){
+                uid=1L;//TODO - current user
             }
+            st = conn.prepareStatement("select * from dragon_group g inner join dragon_group_user gu on g.id=gu.g_id where gu.u_id=?");
+            DbHelper.setParameters(st, uid);
 
             ResultSet rs = st.executeQuery();
 
@@ -196,15 +197,68 @@ public class GroupBean implements GroupIntf {
             logger.info("Adding biz: " + rid + " -> " + gid);
             cnt = DbHelper.runUpdate2(null, "insert into dragon_group_rest (g_id,res_id,factor) VALUES(?,?,?)", gid, rid, factor);
         } else if(Long.compare(ex, factor) != 0 && factor > 0) {
-            if(factor > 30){
-                factor = 30L;
-            }
-            logger.info("Factor not changed:" + rid + "|" + gid);
-//            logger.info("Factor changed:" + rid + "|" + gid);
-//            cnt = DbHelper.runUpdate2(null, "update dragon_group_rest set factor=? where g_id=? and res_id=?", factor, gid, rid);
+            logger.info("Factor changed:" + rid + "|" + gid);
+            cnt = DbHelper.runUpdate2(null, "update dragon_group_rest set factor=? where g_id=? and res_id=?", factor, gid, rid);
+        } else {
+            logger.debug("Factor not changed:" + rid + "|" + gid);
         }
 
         return cnt;
+    }
+
+    public int saveRestaurantToGroupBatch(List<Pair> pair, Long gid) throws Exception {
+
+        logger.info("Saving factors for: " + gid);
+        Connection conn = null;
+
+        try {
+            conn = DbHelper.getConn();
+
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("select res_id,factor from dragon_group_rest where g_id = " + gid);
+            Map<Long, Long> existing = new HashedMap();
+            while (rs.next()) {
+                existing.put(rs.getLong("res_id"), rs.getLong("factor"));
+            }
+
+            conn.setAutoCommit(false);
+
+            int cnt = 0;
+            PreparedStatement st1 = conn.prepareStatement("insert into dragon_group_rest (g_id,res_id,factor) VALUES(?,?,?)");
+            PreparedStatement st2 = conn.prepareStatement("update dragon_group_rest set factor=? where g_id=? and res_id=?");
+
+            for(Pair p:pair){
+                Long rid = new Double(p.getLeft().toString()).longValue();
+                Long factor =  new Double(p.getRight().toString()).longValue();
+                Long ex = existing.get(rid);
+
+                if (ex == null) {
+                    logger.info("Adding biz: " + rid + " -> " + gid);
+                    st1.setLong(1, gid);
+                    st1.setLong(2, rid);
+                    st1.setLong(3, factor);
+                    st1.addBatch();
+                    cnt ++;
+                } else if (Long.compare(ex, factor) != 0 && factor > 0) {
+                    logger.info("Factor changed:" + rid + "|" + gid);
+                    st2.setLong(2, gid);
+                    st2.setLong(3, rid);
+                    st2.setLong(1, factor);
+                    st2.addBatch();
+                    cnt ++;
+                } else {
+                    logger.debug("Factor not changed:" + rid + "|" + gid);
+                }
+            }
+
+            st1.executeBatch();
+            st2.executeBatch();
+            conn.commit();
+
+            return cnt;
+        }finally {
+            DbHelper.closeConn(conn);
+        }
     }
 
     public int removeRestaurantFromGroup(Long rid, Long gid) {
@@ -242,6 +296,12 @@ public class GroupBean implements GroupIntf {
         return cnt > 0;
     }
 
+    public Boolean mute(Long gid, boolean mute){
+        Long uid=1L;//TODO
+        DbHelper.runUpdate2(null, "update dragon_group_user set mute=? where g_id=? and u_id=?", mute, gid, uid);
+        return mute;
+    }
+
     public Long saveUser(User u) {
 
         logger.info("Saving user: " + u.getEmail());
@@ -263,7 +323,28 @@ public class GroupBean implements GroupIntf {
         return id;
     }
 
-    private User getUser(Long uid) {
+    public void loadDependencies(Group g, int limit) throws Exception{
+        if(g == null) return;
+
+        Long gid = g.getId();
+
+        List<Record> recs = eb.getRecords(gid, limit);
+        g.setRecords(recs);
+
+        Map<String, Stat> stats =  eb.stat(gid, 0, true);
+        g.setStats(stats);
+
+        if(isMember()) {
+            List<User> users = getUsers(gid);
+            g.setUsers(users);
+        }
+    }
+
+    private boolean isMember() {
+        return true;//TODO
+    }
+
+    public User getUser(Long uid) {
         Connection conn = null;
         User rec = null;
 
@@ -283,6 +364,31 @@ public class GroupBean implements GroupIntf {
         } catch (Exception e) {
             logger.error(e.getMessage());
             return null;
+        } finally {
+            DbHelper.closeConn(conn);
+        }
+    }
+
+    public List<User> getUsers(Long gid) throws Exception {
+        Connection conn = null;
+        List<User> list = new ArrayList<User>();
+
+        try {
+            conn = DbHelper.getConn();
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("select * from dragon_user,dragon_group_user where " +
+                    "dragon_group_user.u_id=dragon_user.id and dragon_group_user.g_id=" + gid);
+
+            while (rs.next()) {
+                User rec = new User();
+                rec.setId(rs.getLong("id"));
+                rec.setEmail(rs.getString("email"));
+                rec.setName(rs.getString("name"));
+
+                list.add(rec);
+            }
+
+            return list;
         } finally {
             DbHelper.closeConn(conn);
         }

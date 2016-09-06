@@ -7,6 +7,7 @@ public class User {
     Long id;
     String name;
     String email;
+    NotifyType notifyType;
 
     public User(String email) {
         this.email = email;
@@ -18,6 +19,14 @@ public class User {
 
     public Long getId() {
         return id;
+    }
+
+    public NotifyType getNotifyType() {
+        return notifyType;
+    }
+
+    public void setNotifyType(NotifyType notifyType) {
+        this.notifyType = notifyType;
     }
 
     public void setId(Long id) {
@@ -40,4 +49,9 @@ public class User {
         this.email = email;
     }
 
+    public static enum NotifyType {
+        Push,
+        Email,
+        None
+    }
 }

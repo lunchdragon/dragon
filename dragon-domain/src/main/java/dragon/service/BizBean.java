@@ -114,7 +114,7 @@ public class BizBean implements BizIntf {
     }
 
     //Not thread safe
-    public String vote(Vote v, Boolean resend, Boolean admin) {
+    public String vote(Vote v, Boolean resend, Boolean admin) throws Exception {
 
         Long t1 = System.currentTimeMillis();
         logger.info(v.toString());
@@ -271,7 +271,7 @@ public class BizBean implements BizIntf {
         return null;
     }
 
-    public Restaurant pickup(String reason, Long gid, boolean notify) {
+    public Restaurant pickup(String reason, Long gid, boolean notify) throws Exception {
 
         logger.info("Sending lunch mail for: " + gid);
         List<String> mails = getMails(gid);
@@ -311,8 +311,6 @@ public class BizBean implements BizIntf {
                     qh.sendMsg();
                     logger.info("Msg sent to queue:" + gname + " -> " + mail);
                 }
-            } catch (Exception e) {
-                logger.error("", e);
             } finally {
                 if (qh != null) {
                     try {
@@ -535,7 +533,7 @@ public class BizBean implements BizIntf {
         return sb.toString();
     }
 
-    public Record saveRecord(Record r) {
+    public Record saveRecord(Record r) throws Exception {
 
         Long id = r.getId();
         if (id == null || id <= 0) {
@@ -662,7 +660,7 @@ public class BizBean implements BizIntf {
         return strKey;
     }
 
-    private Record getRecord(Long recId) {
+    public Record getRecord(Long recId) throws Exception{
         Connection conn = null;
         Record rec = null;
 
@@ -681,9 +679,39 @@ public class BizBean implements BizIntf {
             }
 
             return rec;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return null;
+        } finally {
+            DbHelper.closeConn(conn);
+        }
+    }
+
+    public List<Record> getRecords(Long gid, int limit) throws Exception {
+        Connection conn = null;
+
+        try {
+            conn = DbHelper.getConn();
+            List<Record> list = new ArrayList<Record>();
+
+            String sql = "select * from dragon_record where g_id = ? order by go_time desc";
+            if(limit > 0){
+                sql += " limit " + limit;
+            }
+            PreparedStatement st = conn.prepareStatement(sql);
+            DbHelper.setParameters(st, gid);
+
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                Record rec = new Record();
+                rec.setId(rs.getLong("id"));
+                rec.setVeto(rs.getBoolean("veto"));
+                rec.setResid(rs.getLong("res_id"));
+                rec.setGoTime(rs.getLong("go_time"));
+                rec.setgId(rs.getLong("g_id"));
+
+                list.add(rec);
+            }
+
+            return list;
         } finally {
             DbHelper.closeConn(conn);
         }
@@ -711,6 +739,10 @@ public class BizBean implements BizIntf {
         } finally {
             DbHelper.closeConn(conn);
         }
+    }
+
+    public Restaurant getRestaurantById(Long id) {
+        return getRestaurant(new Pair<String, Object>("id", id));
     }
 
     private Boolean saveVote(Vote r, Connection conn) {
@@ -749,7 +781,7 @@ public class BizBean implements BizIntf {
     }
 
     public List<String> getMails(Long gid) {
-        List<String> mails = DbHelper.getFirstColumnList(null, "select u.email from dragon_user u, dragon_group g, dragon_group_user gu where gu.u_id=u.id and gu.g_id=g.id and g.id=?", gid);
+        List<String> mails = DbHelper.getFirstColumnList(null, "select u.email from dragon_user u, dragon_group g, dragon_group_user gu where gu.u_id=u.id and gu.g_id=g.id and g.id=? and gu.mute != true", gid);
         return mails;
     }
 

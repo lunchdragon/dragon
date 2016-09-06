@@ -2,10 +2,12 @@ package dragon.service.ds;
 
 import dragon.model.food.Restaurant;
 
+import java.util.List;
+
 /**
  * Created by lin.cheng on 7/21/15.
  */
 public interface DsRetriever {
     Restaurant addByBid(Long gid, String bid);
-    int searchAndImport(Long gid);
+    List<Restaurant> searchAndImport(Long gid);
 }
