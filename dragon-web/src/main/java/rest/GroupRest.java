@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Created by lin.cheng on 7/22/15.
  */
-@Path("/biz/group")
+@Path("/group")
 public class GroupRest extends BaseRest {
 
     @Path("save")
@@ -32,8 +32,10 @@ public class GroupRest extends BaseRest {
 
             Group g = JSONHelper.fromJson2(json, Group.class);
             g = gb.saveGroup(g);
-            gb.saveUser(new User(mail));
-            gb.saveUserToGroup(mail, g.getId(), true);
+            if(mail != null) {
+                gb.saveUser(new User(mail));
+                gb.saveUserToGroup(mail, g.getId(), true);
+            }
             if (apply) {
                 gb.applyPreference(g);
             }
@@ -105,10 +107,10 @@ public class GroupRest extends BaseRest {
 
     @Path("sub")
     @GET
-    public String sub(@QueryParam("mail") String mail, @QueryParam("gid") Long gid) {
+    public String sub(@QueryParam("mail") String mail, @QueryParam("gid") Long gid, @QueryParam("admin") boolean admin) {
         try {
             GroupIntf t = BeanFinder.getInstance().getLocalSessionBean(GroupBean.class);
-            if (t.subscribe(mail, gid, true)) {
+            if (t.subscribe(mail, gid, true, admin)) {
                 return "Subscribed!";
             } else {
                 return "Error!";

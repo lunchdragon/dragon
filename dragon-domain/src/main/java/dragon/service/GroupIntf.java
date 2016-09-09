@@ -26,6 +26,7 @@ public interface GroupIntf {
     int applyPreference(Group g);
     Restaurant addByBizId(String yid, Long gid);
     Boolean subscribe(String email, Long gid, boolean sub);
+    Boolean subscribe(String email, Long gid, boolean sub, boolean admin);
     List<Group> getGroups(Long uid);
     Group getGroup(Pair<String, Object> p);
     Long saveUser(User u);

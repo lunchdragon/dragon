@@ -269,10 +269,19 @@ public class GroupBean implements GroupIntf {
         return cnt;
     }
 
-    //Not thread safe
     public Boolean subscribe(String email, Long gid, boolean sub) {
 
-        if (StringUtils.isBlank(email) || !email.contains("@")) {
+        return subscribe(email, gid, sub, false);
+    }
+
+    //Not thread safe
+    public Boolean subscribe(String email, Long gid, boolean sub, boolean admin) {
+
+        if (StringUtils.isBlank(email)) {//TODO
+//            email = curentUser;
+        }
+
+        if (StringUtils.isBlank(email)) {
             return false;
         }
 
@@ -287,7 +296,7 @@ public class GroupBean implements GroupIntf {
         int cnt = 0;
         if(gid != null && gid > 0) {
             if (sub) {
-                cnt = saveUserToGroup(email, gid, false);
+                cnt = saveUserToGroup(email, gid, admin);
             } else {
                 cnt = removeUserFromGroup(email, gid);
             }

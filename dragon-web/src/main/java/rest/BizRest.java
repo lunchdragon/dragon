@@ -199,6 +199,7 @@ public class BizRest extends BaseRest {
             Vote v = new Vote();
             v.setRecId(id);
             v.setResult(res);
+            //TODO
             v.setEmail(mail);
             v.setIp(SecureContexts.getRemoteAddr());
             BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
