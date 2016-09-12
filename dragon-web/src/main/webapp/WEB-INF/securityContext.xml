@@ -13,5 +13,8 @@
         <securePath path="/html/*">
             <authType>HTML</authType>
         </securePath>
+        <securePath path="/rn/*">
+            <authType>HTML</authType>
+        </securePath>
     </securePaths>
 </securityContext>

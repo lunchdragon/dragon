@@ -104,7 +104,7 @@ public class YelpRetriever implements DsRetriever {
         this.nopre = nopre;
     }
 
-    public List<Restaurant> searchAndImport(Long gid) {
+    public List<Restaurant> searchAndImport(Long gid) throws Exception{
 
         List<Restaurant> ret = new ArrayList<Restaurant>();
 
@@ -231,7 +231,7 @@ public class YelpRetriever implements DsRetriever {
         return ret;
     }
 
-    public Restaurant addByBid(Long gid, String bid){
+    public Restaurant addByBid(Long gid, String bid)throws Exception{
         YelpAPI ya = new YelpAPI();
         String json = ya.searchByBusinessId(bid);
         JSONParser parser = new JSONParser();
@@ -327,7 +327,11 @@ public class YelpRetriever implements DsRetriever {
     }
 
     public static void main(String[] args) {
-        new YelpRetriever().searchAndImport(29229L);
+        try {
+            new YelpRetriever().searchAndImport(29229L);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 //        new YelpRetriever().addByBid(null, "chef-yu-hunan-gourmet-sunnyvale");
     }
 

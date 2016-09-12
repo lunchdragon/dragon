@@ -1,6 +1,7 @@
 package dragon.service.sec;
 
-import org.apache.commons.lang.StringUtils;
+import dragon.model.food.User;
+import dragon.utils.BeanFinder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -17,7 +18,6 @@ public class SecureContexts {
     public final static long SUPER_GLOBAL_ID = 3L;
 
     public static final String SYSTEM_DOMAIN_NAME = "system";
-    public static final String SERVICE_DOMAIN_NAME = "service";
     public static final String SUPER_DOMAIN_NAME = "Super";
     
     public static final String ACL = "__acl__";
@@ -64,6 +64,20 @@ public class SecureContexts {
         sessionContext.set(null);
     }
 
+    public static void endSession() {
+        RequestContext ctx = sessionContext.get();
+        if (ctx != null) {
+            Identity ident = (Identity) ctx.get(LOGIN_IDENTITY);
+            if(ident != null) {
+                logger.info("Logout: " + ident.getSubject());
+            }
+
+            ctx.put(LOGGED_FLAG, true);
+            ctx.invalidate();
+            sessionContext.set(null);
+        }
+    }
+
     public static boolean isContextActive() {
         return sessionContext.get() != null;
     }
@@ -93,15 +107,20 @@ public class SecureContexts {
         }
     }
 
-    public static boolean beginSession(String domain, String subject, String password, String userDomain) throws NamingException {
-        return beginSession(domain, subject, password, userDomain, false);
+    public static boolean beginSession(String subject, String password) throws NamingException {
+        return beginSession(subject, password, false);
     }
 
-    public static boolean beginSession(String domain, String subject, String password, String userDomain, boolean setTwoFactor) throws NamingException {
-        if (StringUtils.isEmpty(domain)) {
-            domain = SERVICE_DOMAIN_NAME;
+    public static boolean beginSession(String subject, String password, boolean setTwoFactor) throws NamingException {
+        Authenticator auth = BeanFinder.getInstance().getLocalSessionBean(AuthenticatorBean.class);
+        Identity user = null;
+        user = auth.authenticate(subject, password, setTwoFactor);
+        if (user != null) {
+            setLoginIdentity(user);
+            return true;
+        } else {
+            return false;
         }
-        return true;
     }
 
     public static Identity get2faIdentity() {
@@ -192,6 +211,43 @@ public class SecureContexts {
         }
 
         return false;
+    }
+
+    public static Identity createSecuredIdentity(User u) {
+        Identity si = new Identity();
+        si.setId(u.getId());
+        si.setSubject(u.getName());
+        si.setFullName(u.getAlias());
+        si.setClientAddr(SecureContexts.getRemoteAddr());
+
+        return si;
+    }
+
+    public static void setLoginIdentity(Identity user) {
+        RequestContext webCtx = sessionContext.get();
+        if (webCtx != null) {
+            webCtx.createSession();
+            webCtx.put(SecureContexts.LOGIN_IDENTITY, user);
+            auditLoginSucceeded(user);
+        } else {
+            throw new RuntimeException("Invalid state");
+        }
+    }
+
+    public static Identity getLoginIdentity() {
+        Identity u = null;
+        if (SecureContexts.isContextActive()) {
+            u = (Identity) sessionContext.get().get(SecureContexts.LOGIN_IDENTITY);
+        }
+        if (u == null) {
+            return  null;
+        }
+
+        return u.clone();
+    }
+
+    private static void auditLoginSucceeded(Identity ident) {
+        logger.info("Login successful: " + ident.getSubject());
     }
 
 }

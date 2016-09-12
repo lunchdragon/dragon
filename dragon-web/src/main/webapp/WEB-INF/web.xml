@@ -105,4 +105,18 @@
         <ejb-link>GroupBean</ejb-link>
     </ejb-local-ref>
 
+    <ejb-local-ref>
+        <ejb-ref-name>dragon/AuthenticatorBean/local</ejb-ref-name>
+        <ejb-ref-type>Session</ejb-ref-type>
+        <local>dragon.service.sec.Authenticator</local>
+        <ejb-link>AuthenticatorBean</ejb-link>
+    </ejb-local-ref>
+
+    <ejb-local-ref>
+        <ejb-ref-name>dragon/SecureIdentManagerBean/local</ejb-ref-name>
+        <ejb-ref-type>Session</ejb-ref-type>
+        <local>dragon.service.sec.SecureIdentManager</local>
+        <ejb-link>SecureIdentManagerBean</ejb-link>
+    </ejb-local-ref>
+
 </web-app>

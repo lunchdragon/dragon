@@ -14,7 +14,7 @@ import java.util.Map;
  */
 @Local
 public interface BizIntf {
-    Restaurant pickRestaurant(Long gid);
+    Restaurant pickRestaurant(Long gid)throws Exception;
     List<Restaurant> getRestaurants(String condition);
     List<Restaurant> getRestaurants(Long gid);
     Long saveRestaurant(Restaurant r, Connection conn);
@@ -24,13 +24,13 @@ public interface BizIntf {
     Map<String, Stat> stat(long gid, long exId, Boolean sort);
     Map<String, Stat> stat2(long gid, int days);
     Record saveRecord(Record r) throws Exception;
-    String saveSecret(String key, String value);
-    String getSecret(String key);
-    List<String> getMails(Long gid);
+    String saveSecret(String key, String value)throws Exception;
+    String getSecret(String key)throws Exception;
+    List<String> getMails(Long gid)throws Exception;
     Restaurant getRestaurant(Pair<String, Object> p);
     Restaurant getRestaurantById(Long id);
     List<Schedule> getSchedules(String condition);
-    Schedule saveSchedule(Schedule s);
+    Schedule saveSchedule(Schedule s)throws Exception;
     void printPerfData();
     public void sendSummaryEmail(Long gid) throws Exception;
     List<Record> getRecords(Long gid, int limit) throws Exception;

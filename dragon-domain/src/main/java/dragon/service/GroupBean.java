@@ -1,9 +1,12 @@
 package dragon.service;
 
+import dragon.comm.ApplicationException;
 import dragon.comm.Pair;
 import dragon.model.food.*;
 import dragon.service.ds.DsRetriever;
 import dragon.service.ds.YelpRetriever;
+import dragon.service.sec.AccessController;
+import dragon.service.sec.SecureIdentManager;
 import dragon.utils.DbHelper;
 import org.apache.commons.collections.comparators.BooleanComparator;
 import org.apache.commons.collections.map.HashedMap;
@@ -27,10 +30,12 @@ public class GroupBean implements GroupIntf {
 
     @EJB
     BizIntf eb;
+    @EJB
+    SecureIdentManager identMgr;
 
     static Log logger = LogFactory.getLog(GroupBean.class);
 
-    public Group saveGroup(Group g) {
+    public Group saveGroup(Group g) throws Exception{
 
         if(g == null) {
             return null;
@@ -91,7 +96,7 @@ public class GroupBean implements GroupIntf {
             conn = DbHelper.getConn();
             PreparedStatement st = null;
             if(uid == null){
-                uid=1L;//TODO - current user
+                uid=AccessController.getCurrentUserId();
             }
             st = conn.prepareStatement("select * from dragon_group g inner join dragon_group_user gu on g.id=gu.g_id where gu.u_id=?");
             DbHelper.setParameters(st, uid);
@@ -134,26 +139,26 @@ public class GroupBean implements GroupIntf {
         return g;
     }
 
-    public Restaurant addByBizId(String yid, Long gid){
+    public Restaurant addByBizId(String yid, Long gid)throws Exception{
         DsRetriever dr = new YelpRetriever();
         Restaurant ret = dr.addByBid(gid, yid);
         return ret;
     }
 
-    public int saveUserToGroup(String email, String gname, boolean admin) {
+    public int saveUserToGroup(String email, String gname, boolean admin)throws Exception {
         Long gid = DbHelper.runWithSingleResult2(null, "select id from dragon_group where name = ?", gname);
         int cnt = saveUserToGroup(email, gid, admin);
         return cnt;
     }
 
-    public int removeUserFromGroup(String email, String gname) {
+    public int removeUserFromGroup(String email, String gname)throws Exception {
 
         Long gid = DbHelper.runWithSingleResult2(null, "select id from dragon_group where name = ?", gname);
         int cnt = removeUserFromGroup(email, gid);
         return cnt;
     }
 
-    public int saveUserToGroup(String email, Long gid, boolean admin) {
+    public int saveUserToGroup(String email, Long gid, boolean admin)throws Exception {
 
         logger.info("Adding user: " + email + " -> " + gid);
 
@@ -170,7 +175,7 @@ public class GroupBean implements GroupIntf {
         return cnt;
     }
 
-    public int removeUserFromGroup(String email, Long gid) {
+    public int removeUserFromGroup(String email, Long gid)throws Exception {
 
         logger.info("Removing user: " + email + " -> " + gid);
 
@@ -179,7 +184,7 @@ public class GroupBean implements GroupIntf {
         return cnt;
     }
 
-    public int saveRestaurantByName(Long rid, String gname, Long factor) {
+    public int saveRestaurantByName(Long rid, String gname, Long factor)throws Exception {
 
         Long gid = DbHelper.runWithSingleResult2(null, "select id from dragon_group where name = ?", gname);
         int cnt = saveRestaurantToGroup(rid, gid, factor);
@@ -187,7 +192,7 @@ public class GroupBean implements GroupIntf {
         return cnt;
     }
 
-    public int saveRestaurantToGroup(Long rid, Long gid, Long factor) {
+    public int saveRestaurantToGroup(Long rid, Long gid, Long factor)throws Exception {
 
         logger.info("Saving biz: " + rid + " -> " + gid);
 
@@ -261,7 +266,7 @@ public class GroupBean implements GroupIntf {
         }
     }
 
-    public int removeRestaurantFromGroup(Long rid, Long gid) {
+    public int removeRestaurantFromGroup(Long rid, Long gid) throws Exception{
 
         logger.info("Removing biz: " + rid + " -> " + gid);
 
@@ -269,13 +274,13 @@ public class GroupBean implements GroupIntf {
         return cnt;
     }
 
-    public Boolean subscribe(String email, Long gid, boolean sub) {
+    public Boolean subscribe(String email, Long gid, boolean sub) throws Exception{
 
         return subscribe(email, gid, sub, false);
     }
 
     //Not thread safe
-    public Boolean subscribe(String email, Long gid, boolean sub, boolean admin) {
+    public Boolean subscribe(String email, Long gid, boolean sub, boolean admin)throws Exception {
 
         if (StringUtils.isBlank(email)) {//TODO
 //            email = curentUser;
@@ -290,7 +295,7 @@ public class GroupBean implements GroupIntf {
         Long uid = DbHelper.runWithSingleResult2(null, "select id from dragon_user where email = ?", email);
         if (uid == null) {
             DbHelper.runUpdate2(null, "insert into dragon_user (id,email,name) VALUES(?,?,?)",
-                    DbHelper.getNextId(null), email, email.split("@")[0]);
+                    DbHelper.getNextId(null), email, email);
         }
 
         int cnt = 0;
@@ -305,30 +310,42 @@ public class GroupBean implements GroupIntf {
         return cnt > 0;
     }
 
-    public Boolean mute(Long gid, boolean mute){
-        Long uid=1L;//TODO
+    public Boolean mute(Long gid, boolean mute)throws Exception{
+        Long uid= AccessController.getCurrentUserId();
         DbHelper.runUpdate2(null, "update dragon_group_user set mute=? where g_id=? and u_id=?", mute, gid, uid);
         return mute;
     }
 
-    public Long saveUser(User u) {
+    public Long saveUser(User u, boolean reg)throws Exception {
 
-        logger.info("Saving user: " + u.getEmail());
+        logger.info("Saving user: " + u.getName());
 
-        String key = u.getEmail();
-        int cnt = DbHelper.runUpdate2(null, "update dragon_user set name=? where email=?",
-                u.getName(), key);
+        String key = u.getName();
+        Long id = DbHelper.runWithSingleResult2(null, "select id from dragon_user where name = ?", key);
 
-        Long id = DbHelper.runWithSingleResult2(null, "select id from dragon_user where email = ?", key);
+        if(reg){
+            if(id != null){
+//                throw new ApplicationException("User is already existing.");
+            }
+        }
 
-        if (cnt > 0) {
-            return id;
+        if(id != null) {
+            int cnt = DbHelper.runUpdate2(null, "update dragon_user set alias=?,email=? where name=?",
+                    u.getAlias(), u.getEmail(), key);
+
+            if (cnt > 0) {
+                identMgr.createOrUpdate(u.getName(), u.getPwd(), true);
+                return id;
+            }
         }
 
         id = DbHelper.getNextId(null);
-        DbHelper.runUpdate2(null, "insert into dragon_user (id,email,name) VALUES(?,?,?)",
-                id, key,u.getName());
+        int cnt = DbHelper.runUpdate2(null, "insert into dragon_user (id,email,name,alias) VALUES(?,?,?,?)",
+                id, u.getEmail(), u.getName(),u.getAlias());
 
+        if(cnt > 0) {
+            identMgr.createOrUpdate(u.getName(), u.getPwd(), true);
+        }
         return id;
     }
 
@@ -353,20 +370,21 @@ public class GroupBean implements GroupIntf {
         return true;//TODO
     }
 
-    public User getUser(Long uid) {
+    public User getUser(String name) {
         Connection conn = null;
         User rec = null;
 
         try {
             conn = DbHelper.getConn();
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("select * from dragon_user where id = " + uid);
+            ResultSet rs = st.executeQuery("select * from dragon_user where name = '" + name + "'");
 
             if (rs.next()) {
                 rec = new User();
-                rec.setId(uid);
+                rec.setId(rs.getLong("id"));
                 rec.setEmail(rs.getString("email"));
-                rec.setName(rs.getString("name"));
+                rec.setAlias(rs.getString("alias"));
+                rec.setName(name);
             }
 
             return rec;
@@ -393,6 +411,7 @@ public class GroupBean implements GroupIntf {
                 rec.setId(rs.getLong("id"));
                 rec.setEmail(rs.getString("email"));
                 rec.setName(rs.getString("name"));
+                rec.setAlias(rs.getString("alias"));
 
                 list.add(rec);
             }

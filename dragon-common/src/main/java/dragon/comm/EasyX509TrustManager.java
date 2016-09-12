@@ -76,7 +76,7 @@ public class EasyX509TrustManager implements X509TrustManager
 //        }
 
 
-//        if (certificates != null) { //todo check prospecthills certificate
+//        if (certificates != null) {
 //            for (int i = 0; i < certificates.length; i ++) {
 //                certificates[i].checkValidity();
 //            }

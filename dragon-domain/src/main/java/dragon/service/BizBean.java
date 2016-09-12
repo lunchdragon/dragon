@@ -9,6 +9,8 @@ import dragon.model.food.Restaurant;
 import dragon.model.food.Stat;
 import dragon.model.food.Vote;
 import dragon.model.job.Schedule;
+import dragon.service.sec.AccessController;
+import dragon.service.sec.SecureContexts;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
@@ -217,7 +219,7 @@ public class BizBean implements BizIntf {
         return list;
     }
 
-    public Restaurant pickRestaurant(Long gid) {
+    public Restaurant pickRestaurant(Long gid)throws Exception {
 
         Long t1 = System.currentTimeMillis();
 
@@ -273,7 +275,7 @@ public class BizBean implements BizIntf {
 
     public Restaurant pickup(String reason, Long gid, boolean notify) throws Exception {
 
-        logger.info("Sending lunch mail for: " + gid);
+        logger.info("Pick up lunch for: " + gid);
         List<String> mails = getMails(gid);
 
         if (mails != null && mails.size() > 0) {
@@ -304,13 +306,11 @@ public class BizBean implements BizIntf {
                 qh.initializeMessage();
                 qh.initializeQueue("jms/EmailQueue");
                 qh.addParameter("title", "[" + gname + "] " + r.getAlias());
+                qh.addParameter("to", StringUtils.join(mails, ","));
+                qh.addParameter("body", buildBody("", r, reason, id, gid));
 
-                for (String mail : mails) {
-                    qh.addParameter("to", mail);
-                    qh.addParameter("body", buildBody(mail, r, reason, id, gid));
-                    qh.sendMsg();
-                    logger.info("Msg sent to queue:" + gname + " -> " + mail);
-                }
+                qh.sendMsg();
+                logger.info("Msg sent to queue:" + gname + " -> " + StringUtils.join(mails, ","));
             } finally {
                 if (qh != null) {
                     try {
@@ -525,10 +525,10 @@ public class BizBean implements BizIntf {
 
         String url = "http://" + server + ":" + port + "/dragon/rest/biz/";
 
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=2").append("\'/>").append("靠谱</a>").append("<br>");
-        sb.append("<a href=\'").append(url + "vote?mail=" + mail + "&id=" + id + "&vote=1").append("\'/>").append("坑爹</a>").append("<br>");
-        sb.append("<a href=\'").append(url).append("vote?mail=").append(mail).append("&id=").append(id).append("&vote=0").append("\'/>").append("换一家我就去").append("</a>").append("<br><br>");
-        sb.append("<a href=\'").append(url + "group/unsub?mail=" + mail).append("&gid=").append(gid).append("\'/>").append("取关!</a>").append("<br>");
+        sb.append("<a href=\'").append(url).append("vote?id=").append(id).append("&vote=2").append("\'/>").append("靠谱</a>").append("<br>");
+        sb.append("<a href=\'").append(url + "vote?id=" + id + "&vote=1").append("\'/>").append("坑爹</a>").append("<br>");
+        sb.append("<a href=\'").append(url).append("vote?id=").append(id).append("&vote=0").append("\'/>").append("换一家我就去").append("</a>").append("<br><br>");
+        sb.append("<a href=\'").append(url + "unsub?gid=").append(gid).append("\'/>").append("取关!</a>").append("<br>");
 
         return sb.toString();
     }
@@ -546,7 +546,7 @@ public class BizBean implements BizIntf {
         return getRecord(id);
     }
 
-    public Schedule saveSchedule(Schedule s) {
+    public Schedule saveSchedule(Schedule s)throws Exception {
 
         if(s == null){
             return null;
@@ -598,7 +598,7 @@ public class BizBean implements BizIntf {
         return list;
     }
 
-    public String saveSecret(String key, String value) {
+    public String saveSecret(String key, String value) throws Exception{
 
         logger.info("Saving secret:" + key);
 
@@ -621,7 +621,7 @@ public class BizBean implements BizIntf {
         return enValue;
     }
 
-    public String getSecret(String key) {
+    public String getSecret(String key) throws Exception{
         String enValue = DbHelper.runWithSingleResult2(null, "select value from dragon_secret where name =?", key);
 
         if(enValue == null){
@@ -640,7 +640,7 @@ public class BizBean implements BizIntf {
         return value;
     }
 
-    private String getOrCreateKey(){
+    private String getOrCreateKey()throws Exception{
 
         String key = DbHelper.runWithSingleResult("select value from dragon_secret where name ='" + KEY + "'", null);
 
@@ -780,7 +780,7 @@ public class BizBean implements BizIntf {
         return true;
     }
 
-    public List<String> getMails(Long gid) {
+    public List<String> getMails(Long gid)throws Exception {
         List<String> mails = DbHelper.getFirstColumnList(null, "select u.email from dragon_user u, dragon_group g, dragon_group_user gu where gu.u_id=u.id and gu.g_id=g.id and g.id=? and gu.mute != true", gid);
         return mails;
     }
@@ -807,7 +807,7 @@ public class BizBean implements BizIntf {
         return ret;
     }
 
-    private String checkVeto(Record rec){
+    private String checkVeto(Record rec)throws Exception{
         if(rec == null || rec.getVeto() || System.currentTimeMillis() - rec.getGoTime() > 1000 * 60 * 60){
             return null;
         }
@@ -851,11 +851,9 @@ public class BizBean implements BizIntf {
                 qh.addParameter("title", "[" + gname + "] " + "Summary");
                 qh.addParameter("body", buildBody(gid));
 
-                for (String mail : mails) {
-                    qh.addParameter("to", mail);
-                    qh.sendMsg();
-                    logger.info("Msg sent to queue:" + gname + " -> " + mail);
-                }
+                qh.addParameter("to", StringUtils.join(mails, ","));
+                qh.sendMsg();
+                logger.info("Msg sent to queue:" + gname + " -> " +  StringUtils.join(mails, ","));
             } finally {
                 if (qh != null) {
                     try {

@@ -6,12 +6,14 @@
 public class User {
     Long id;
     String name;
+    String alias;
     String email;
+    String pwd;
     NotifyType notifyType;
 
     public User(String email) {
         this.email = email;
-        this.name = email.split("@")[0];
+        this.name = email;
     }
 
     public User() {
@@ -47,6 +49,22 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public String getPwd() {
+        return pwd;
+    }
+
+    public void setPwd(String pwd) {
+        this.pwd = pwd;
     }
 
     public static enum NotifyType {

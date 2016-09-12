@@ -45,12 +45,8 @@ public class SecurityFilter implements Filter {
                 for (SecurePath sp : securityContext.getSecurePaths()) {
                     if (sp.match(uri)) {
                         AuthType candidate = sp.getAuthType();
-                        if(uri.contains("rest/h5/")){
-                            if(uri.contains("h5/sec/isLoggedIn") || uri.contains("/h5/sec/login")){
-                                return;//go ahead to do login
-                            } else {
-//                                candidate = AuthType.HTML;
-                            }
+                        if(uri.contains("/open/")|| uri.contains("/test")){
+                            return;//no authentication needed
                         }
                         authRequired.set(candidate);
 
@@ -77,39 +73,19 @@ public class SecurityFilter implements Filter {
             String s = header.substring(6);
             String token = CryptoUtils.base64Decode(s);
 
-            String domain = null;
             String username = "";
             String password = "";
-            String ldapDomain = "Empty";
             int delim = token.indexOf(":");
 
             if (delim != -1) {
                 username = token.substring(0, delim);
                 password = token.substring(delim + 1);
             }
-            delim = username.indexOf('/');
-            if (delim > 0) {
-                domain = username.substring(0, delim);
-                username = username.substring(delim + 1);
-                if (StringUtils.isNotBlank(username)) {
-                    String[] userDomains = username.split("/");
-                    if (userDomains != null) {
-                        if (userDomains.length == 2) {
-                            if (StringUtils.isNotBlank(userDomains[0].trim())) {
-                                username = userDomains[0].trim();
-                            }
-                            if (StringUtils.isNotBlank(userDomains[1].trim())) {
-                                ldapDomain = userDomains[1].trim();
-                            }
-                        }
-                    }
-                }
-            }
 
             // Only reauthenticate if username doesn't match Identity.username and user isn't authenticated
             if (!AccessController.isLoggedIn()) {
                 try {
-                    SecureContexts.beginSession(domain, username, password, ldapDomain);
+                    SecureContexts.beginSession(username, password);
                 } catch (NamingException ex) {
                     Logger.getLogger(SecurityFilter.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (Exception ex) {

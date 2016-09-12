@@ -5,6 +5,7 @@ import dragon.comm.Pair;
 import dragon.model.job.Schedule;
 import dragon.service.*;
 import dragon.model.food.*;
+import dragon.service.sec.AccessController;
 import dragon.service.sec.SecureContexts;
 import dragon.utils.BeanFinder;
 import dragon.utils.DbHelper;
@@ -199,8 +200,7 @@ public class BizRest extends BaseRest {
             Vote v = new Vote();
             v.setRecId(id);
             v.setResult(res);
-            //TODO
-            v.setEmail(mail);
+            v.setEmail(AccessController.getCurrentUserName());
             v.setIp(SecureContexts.getRemoteAddr());
             BizIntf t = BeanFinder.getInstance().getLocalSessionBean(BizBean.class);
 
@@ -230,6 +230,10 @@ public class BizRest extends BaseRest {
         if (gid == null) {
             gid = 29229L;
         }
-        DbHelper.runUpdate2(null, "update dragon_schedule set active=NOT active where gid=?", gid);
+        try {
+            DbHelper.runUpdate2(null, "update dragon_schedule set active=NOT active where gid=?", gid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

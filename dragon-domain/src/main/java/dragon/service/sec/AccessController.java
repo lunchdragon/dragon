@@ -43,7 +43,12 @@ public class AccessController {
     }
 
     public static boolean isLoggedIn() {
-        return true;
+        if (SecureContexts.isContextActive()) {
+            RequestContext ctx = SecureContexts.getSessionContext().get();
+            return ctx != null && ctx.containsKey(SecureContexts.LOGIN_IDENTITY);
+        }
+
+        return false;
     }
 
     public static AccessController instance() {
@@ -95,5 +100,30 @@ public class AccessController {
         }
         return pass;
     }
+    public static Identity getIdentity() {
+        Identity user = SecureContexts.getThreadIdentity();
+        if (user == null) {
+            user = SecureContexts.getLoginIdentity();
+        }
 
+        return user;
+    }
+
+    public static String getCurrentUserName() {
+        Identity user = getIdentity();
+        if (user == null) {
+            return null;
+        }
+
+        return user.getSubject();
+    }
+
+    public static Long getCurrentUserId() {
+        Identity user = getIdentity();
+        if (user == null) {
+            return null;
+        }
+
+        return user.getId();
+    }
 }

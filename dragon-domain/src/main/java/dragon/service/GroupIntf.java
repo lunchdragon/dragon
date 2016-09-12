@@ -14,24 +14,24 @@ import java.util.List;
  */
 @Local
 public interface GroupIntf {
-    Group saveGroup(Group g);
-    int saveUserToGroup(String email, String gname, boolean admin);
-    int removeUserFromGroup(String email, String gname);
-    int saveUserToGroup(String email, Long gid, boolean admin);
-    int removeUserFromGroup(String email, Long gid);
-    int saveRestaurantToGroup(Long rid, Long gid, Long factor);
+    Group saveGroup(Group g)throws Exception;
+    int saveUserToGroup(String email, String gname, boolean admin)throws Exception;
+    int removeUserFromGroup(String email, String gname)throws Exception;
+    int saveUserToGroup(String email, Long gid, boolean admin)throws Exception;
+    int removeUserFromGroup(String email, Long gid)throws Exception;
+    int saveRestaurantToGroup(Long rid, Long gid, Long factor)throws Exception;
     int saveRestaurantToGroupBatch(List<Pair> pair, Long gid) throws Exception;
-    int saveRestaurantByName(Long rid, String gname, Long factor);
-    int removeRestaurantFromGroup(Long rid, Long gid);
+    int saveRestaurantByName(Long rid, String gname, Long factor)throws Exception;
+    int removeRestaurantFromGroup(Long rid, Long gid)throws Exception;
     int applyPreference(Group g);
-    Restaurant addByBizId(String yid, Long gid);
-    Boolean subscribe(String email, Long gid, boolean sub);
-    Boolean subscribe(String email, Long gid, boolean sub, boolean admin);
+    Restaurant addByBizId(String yid, Long gid)throws Exception;
+    Boolean subscribe(String email, Long gid, boolean sub)throws Exception;
+    Boolean subscribe(String email, Long gid, boolean sub, boolean admin)throws Exception;
     List<Group> getGroups(Long uid);
     Group getGroup(Pair<String, Object> p);
-    Long saveUser(User u);
+    Long saveUser(User u, boolean reg)throws Exception;
     void loadDependencies(Group g, int limit) throws Exception;
-    User getUser(Long uid);
+    User getUser(String name);
     List<User> getUsers(Long uid) throws Exception;
-    Boolean mute(Long gid, boolean mute);
+    Boolean mute(Long gid, boolean mute)throws Exception;
 }

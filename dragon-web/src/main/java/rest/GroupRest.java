@@ -33,7 +33,7 @@ public class GroupRest extends BaseRest {
             Group g = JSONHelper.fromJson2(json, Group.class);
             g = gb.saveGroup(g);
             if(mail != null) {
-                gb.saveUser(new User(mail));
+                gb.saveUser(new User(mail), false);
                 gb.saveUserToGroup(mail, g.getId(), true);
             }
             if (apply) {

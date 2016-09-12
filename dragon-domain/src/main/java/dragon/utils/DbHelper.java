@@ -79,7 +79,7 @@ public class DbHelper {
         }
     }
 
-    public static <T> T runWithSingleResult(String sql, Connection conn){
+    public static <T> T runWithSingleResult(String sql, Connection conn) throws Exception{
         boolean reuse = conn != null;//Remember to close connection outside
         try {
             if(!reuse){
@@ -90,8 +90,6 @@ public class DbHelper {
             if(rs.next()){
                 return (T) rs.getObject(1);
             }
-        } catch (Exception e){
-            logger.error("", e);
         } finally {
             if(!reuse){
                 closeConn(conn);
@@ -100,7 +98,7 @@ public class DbHelper {
         return null;
     }
 
-    public static <T> T runWithSingleResult2(Connection conn, String sql,  Object ... params){
+    public static <T> T runWithSingleResult2(Connection conn, String sql,  Object ... params) throws Exception{
         boolean reuse = conn != null;//Remember to close connection outside
         try {
             if(!reuse){
@@ -112,8 +110,6 @@ public class DbHelper {
             if(rs.next()){
                 return (T) rs.getObject(1);
             }
-        } catch (Exception e){
-            logger.error("", e);
         } finally {
             if(!reuse){
                 closeConn(conn);
@@ -122,7 +118,7 @@ public class DbHelper {
         return null;
     }
 
-    public static <T> List<T> getFirstColumnList(Connection conn, String sql, Object... params){
+    public static <T> List<T> getFirstColumnList(Connection conn, String sql, Object... params) throws Exception{
         boolean reuse = conn != null;//Remember to close connection outside
         List<T> ret = new ArrayList<T>();
         try {
@@ -135,8 +131,6 @@ public class DbHelper {
             while (rs.next()){
                 ret.add((T) rs.getObject(1));//First selected column only
             }
-        } catch (Exception e){
-            logger.error("", e);
         } finally {
             if(!reuse){
                 closeConn(conn);
@@ -145,7 +139,7 @@ public class DbHelper {
         return ret;
     }
 
-    public static int runUpdate(Connection conn, String sqlFmt, Object ... params){
+    public static int runUpdate(Connection conn, String sqlFmt, Object ... params) throws Exception{
         boolean reuse = conn != null;//Remember to close connection outside
         try {
             if(!reuse){
@@ -155,9 +149,6 @@ public class DbHelper {
             String sql = String.format(sqlFmt, params);
             int cnt = st.executeUpdate(sql);
             return cnt;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0;
         } finally {
             if(!reuse){
                 closeConn(conn);
@@ -165,7 +156,7 @@ public class DbHelper {
         }
     }
 
-    public static int runUpdate2(Connection conn, String sql, Object ... params){
+    public static int runUpdate2(Connection conn, String sql, Object ... params) throws Exception{
         boolean reuse = conn != null;//Remember to close connection outside
         try {
             if(!reuse){
@@ -175,9 +166,6 @@ public class DbHelper {
             setParameters(st, params);
             int cnt = st.executeUpdate();
             return cnt;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0;
         } finally {
             if(!reuse){
                 closeConn(conn);
@@ -185,7 +173,7 @@ public class DbHelper {
         }
     }
 
-    public static Long getNextId(Connection connection) {
+    public static Long getNextId(Connection connection) throws Exception {
         Long id = DbHelper.runWithSingleResult("select nextval ('dragon_id_sec')", connection);
         return id;
     }
