@@ -12,6 +12,7 @@ public class Restaurant {
     Long id;
     String alias;
     String category;
+    String source;
 
     public Restaurant(String name, String link, Long factor, Long id, String alias, String category) {
         this.name = name;
@@ -28,6 +29,10 @@ public class Restaurant {
         this.factor = factor;
         this.alias = alias;
         this.category = category;
+    }
+
+    public Restaurant(String name) {
+        this.name = name;
     }
 
     public String getName() {
@@ -52,6 +57,14 @@ public class Restaurant {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public String getAlias() {
