@@ -14,13 +14,17 @@ public class Restaurant {
     String category;
     String source;
 
-    public Restaurant(String name, String link, Long factor, Long id, String alias, String category) {
+    //transit
+    Boolean open;
+
+    public Restaurant(String name, String link, Long factor, Long id, String alias, String category, String source) {
         this.name = name;
         this.link = link;
         this.factor = factor;
         this.alias = alias;
         this.category = category;
         this.id = id;
+        this.source = source;
     }
 
     public Restaurant(String name, String link, Long factor, String alias, String category) {
@@ -49,6 +53,14 @@ public class Restaurant {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public Boolean getOpen() {
+        return open;
+    }
+
+    public void setOpen(Boolean open) {
+        this.open = open;
     }
 
     public Long getId() {

@@ -4,9 +4,12 @@ import dragon.comm.ApplicationException;
 import dragon.comm.Pair;
 import dragon.model.food.*;
 import dragon.service.ds.DsRetriever;
+import dragon.service.ds.GoogleRetriever;
 import dragon.service.ds.YelpRetriever;
 import dragon.service.sec.AccessController;
 import dragon.service.sec.SecureIdentManager;
+import dragon.service.sec.SecureIdentManagerBean;
+import dragon.utils.BeanFinder;
 import dragon.utils.DbHelper;
 import org.apache.commons.collections.comparators.BooleanComparator;
 import org.apache.commons.collections.map.HashedMap;
@@ -34,6 +37,20 @@ public class GroupBean implements GroupIntf {
     SecureIdentManager identMgr;
 
     static Log logger = LogFactory.getLog(GroupBean.class);
+
+    public BizIntf getEb() {
+        if(eb == null){
+            eb = new BizBean();
+        }
+        return eb;
+    }
+
+    public SecureIdentManager getIdentMgr() {
+        if(identMgr == null){
+            identMgr = new SecureIdentManagerBean();
+        }
+        return identMgr;
+    }
 
     public Group saveGroup(Group g) throws Exception{
 
@@ -76,7 +93,7 @@ public class GroupBean implements GroupIntf {
         }
 
         int cnt = 0;
-        DsRetriever dr = new YelpRetriever(g.getPreference());
+        DsRetriever dr = new GoogleRetriever(g.getPreference());
         try {
             List<Restaurant> ret = dr.searchAndImport(g.getId());
             if(ret != null) {
@@ -334,7 +351,7 @@ public class GroupBean implements GroupIntf {
                     u.getAlias(), u.getEmail(), key);
 
             if (cnt > 0) {
-                identMgr.createOrUpdate(u.getName(), u.getPwd(), true);
+                getIdentMgr().createOrUpdate(u.getName(), u.getPwd(), true);
                 return id;
             }
         }
@@ -344,7 +361,7 @@ public class GroupBean implements GroupIntf {
                 id, u.getEmail(), u.getName(),u.getAlias());
 
         if(cnt > 0) {
-            identMgr.createOrUpdate(u.getName(), u.getPwd(), true);
+            getIdentMgr().createOrUpdate(u.getName(), u.getPwd(), true);
         }
         return id;
     }

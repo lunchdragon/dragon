@@ -32,13 +32,76 @@ public class GoogleRetriever implements DsRetriever {
     static BizIntf eb = getEb();
     static Log logger = LogFactory.getLog(GoogleRetriever.class);
 
-    public String location = "37.425896,-121.902650";//must set by client apps
+    public String location = "37.375835,-122.011051";//must set by client apps
     public String category = "chinese";
     public String exclude = "";
     public String prefer = "";
     public String nopre = "";
-    public String distance = "1000"; //meters
+    public String distance = "5000"; //meters
     public String reviews = ConfigHelper.instance().getConfig("reviews");
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getExclude() {
+        return exclude;
+    }
+
+    public void setExclude(String exclude) {
+        this.exclude = exclude;
+    }
+
+    public String getPrefer() {
+        return prefer;
+    }
+
+    public void setPrefer(String prefer) {
+        this.prefer = prefer;
+    }
+
+    public String getNopre() {
+        return nopre;
+    }
+
+    public void setNopre(String nopre) {
+        this.nopre = nopre;
+    }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
+    }
+
+    public String getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(String reviews) {
+        this.reviews = reviews;
+    }
+
+    public GoogleRetriever() {
+    }
+
+    public GoogleRetriever(String settings) {
+        applySettings(settings);
+    }
 
     public Restaurant addByBid(Long gid, String bid) throws Exception {
 
@@ -68,7 +131,40 @@ public class GoogleRetriever implements DsRetriever {
 
         search(ret, null);
 
+        for(Restaurant r:ret){
+            if(gid != null && gid > 0) {
+                gb.saveRestaurantToGroup(r.getId(), gid, r.getFactor());
+            }
+        }
+
+        System.out.println(ret.size());
         return ret;
+    }
+
+    @Override
+    public Restaurant find(String bid) throws Exception {
+        PlaceDetails p = PlacesApi.placeDetails(context, bid).await();
+
+        if(p == null){
+            return null;
+        }
+        Restaurant r = new Restaurant(p.placeId);
+        r.setAlias(p.name);
+        r.setLink(p.url.toString());
+        r.setSource("g");
+        r.setOpen(isOpen(p.openingHours));
+
+        return r;
+    }
+
+    private Boolean isOpen(OpeningHours oh) {
+        if(oh == null) {
+            return null;
+        }
+        if(oh.openNow){
+            return true;
+        }
+        return false;//TODO
     }
 
     private void search(final List<Restaurant> list, String next) throws Exception {
@@ -91,15 +187,19 @@ public class GoogleRetriever implements DsRetriever {
         for (PlacesSearchResult p : response.results) {
             String name = p.placeId;
             String alias = p.name;
+            Long factor = Math.round(Math.pow(2, p.rating));
             Restaurant r = new Restaurant(name);
             r.setAlias(alias);
+            r.setFactor(factor);
+//            r.setLink(p.url.toString());
+            r.setSource("g");
             eb.saveRestaurant(r, null);
             r = eb.getRestaurant(new Pair<String, Object>("name", r.getName()));
             list.add(r);
         }
 
         if (response.nextPageToken != null) {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
             search(list, response.nextPageToken);
         }
     }
@@ -149,9 +249,27 @@ public class GoogleRetriever implements DsRetriever {
         return gb;
     }
 
+    private static void testThread() throws Exception {
+        for (int i = 0; i < 9; i++) {
+            Thread t = new Thread() {
+                public void run() {
+                    try {
+                        System.out.println("Thread " + currentThread().toString());
+                        new GoogleRetriever().searchAndImport(null);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            t.start();
+        }
+    }
+
     public static void main(String[] args) {
         try {
-            new GoogleRetriever().searchAndImport(null);
+            new GoogleRetriever().find("ChIJSZ40JCvPj4ARrtROah50NPI");
+//            testThread();
+            new GoogleRetriever().searchAndImport(49172L);
 //            new GoogleRetriever().addByBid(null, "ChIJybh1Zz_Kj4ARwEaFrpqiSh8");
         } catch (Exception e) {
             e.printStackTrace();

@@ -10,6 +10,7 @@ import dragon.service.GroupIntf;
 import dragon.utils.BeanFinder;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -210,6 +211,7 @@ public class YelpRetriever implements DsRetriever {
                     cat = cat.substring(cat.indexOf("\"") + 1, cat.lastIndexOf("\""));
 
                     Restaurant r = new Restaurant(id, bo.get("url").toString(), factor, name, cat);
+                    r.setSource("y");
                     Long rid = eb.saveRestaurant(r, conn);
                     r.setId(rid);
 
@@ -229,6 +231,11 @@ public class YelpRetriever implements DsRetriever {
 
         logger.info(String.format("Total : %s businesses found.", cnt));
         return ret;
+    }
+
+    @Override
+    public Restaurant find(String bid) throws Exception {
+        throw new NotImplementedException();
     }
 
     public Restaurant addByBid(Long gid, String bid)throws Exception{

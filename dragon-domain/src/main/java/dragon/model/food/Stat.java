@@ -5,6 +5,7 @@ package dragon.model.food;
  */
 public class Stat {
     private String name;
+    private String alias;
     private int liked = 0;
     private int disliked = 0;
     private int vetoed = 0;
@@ -16,6 +17,17 @@ public class Stat {
         this.name = name;
         this.factor = factor;
         this.score = score;
+    }
+
+    public String getAlias() {
+        if(alias == null){
+            return name;
+        }
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     public String getName() {

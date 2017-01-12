@@ -4,13 +4,10 @@ import dragon.comm.Pair;
 import dragon.comm.Utils;
 import dragon.comm.crypto.CryptoALG;
 import dragon.comm.crypto.CryptoUtils;
-import dragon.model.food.Record;
-import dragon.model.food.Restaurant;
-import dragon.model.food.Stat;
-import dragon.model.food.Vote;
+import dragon.model.food.*;
 import dragon.model.job.Schedule;
-import dragon.service.sec.AccessController;
-import dragon.service.sec.SecureContexts;
+import dragon.service.ds.DsRetriever;
+import dragon.service.ds.GoogleRetriever;
 import dragon.utils.ConfigHelper;
 import dragon.utils.DbHelper;
 import dragon.utils.QueueHelper;
@@ -20,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.crypto.SecretKey;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
@@ -30,6 +28,9 @@ import java.util.*;
  */
 @Stateless
 public class BizBean implements BizIntf {
+
+    @EJB
+    GroupIntf gb;
 
     static Log logger = LogFactory.getLog(BizBean.class);
     static final String KEY = "KEY";
@@ -66,7 +67,7 @@ public class BizBean implements BizIntf {
         boolean reuse = conn != null;//Remember to close connection outside
         Long id = 0L;
 
-        logger.info("Saving biz:" + r.getName());
+        logger.info("Saving biz:" + r.getAlias());
 
         try {
             if (!reuse) {
@@ -84,20 +85,20 @@ public class BizBean implements BizIntf {
             if (id != null) {
                 Long exfactor = DbHelper.runWithSingleResult2(conn, "select factor from dragon_restaurant where name =?", key);
                 if(Long.compare(r.getFactor(), exfactor) != 0) {
-                    logger.info("Factor changed:" + r.getName());
+                    logger.info("Factor changed:" + r.getAlias());
                     DbHelper.runUpdate2(conn, "update dragon_restaurant set factor=? where name=?", r.getFactor(), key);
                 }
-                logger.debug("No qualified changes, skip:" + r.getName());
+                logger.debug("No qualified changes, skip:" + r.getAlias());
                 //...need to add more if want to be able to update more columns
             } else {
-                logger.info("Save new:" + r.getName());
+                logger.info("Save new:" + r.getAlias());
 
                 id = DbHelper.getNextId(conn);
 
                 logger.debug("Add: " + Thread.currentThread().getId());
 
-                DbHelper.runUpdate2(conn, "insert into dragon_restaurant (name,link,factor,id,category,alias) VALUES(?,?,?,?,?,?)",
-                        key, r.getLink(), r.getFactor(), id, r.getCategory(), StringUtils.isNotBlank(r.getAlias()) ? r.getAlias() : key);
+                DbHelper.runUpdate2(conn, "insert into dragon_restaurant (name,link,factor,id,category,alias,source) VALUES(?,?,?,?,?,?,?)",
+                        key, r.getLink(), r.getFactor(), id, r.getCategory(), StringUtils.isNotBlank(r.getAlias()) ? r.getAlias() : key, r.getSource());
             }
 
             conn.commit();
@@ -187,7 +188,7 @@ public class BizBean implements BizIntf {
 
             while (rs.next()) {
                 list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getLong("factor"), rs.getLong("id")
-                ,rs.getString("alias"), rs.getString("category")));
+                ,rs.getString("alias"), rs.getString("category"), rs.getString("source")));
             }
         } catch (Exception e) {
             logger.error("");
@@ -202,14 +203,14 @@ public class BizBean implements BizIntf {
         List<Restaurant> list = new ArrayList<Restaurant>();
         try {
             conn = DbHelper.getConn();
-            PreparedStatement st = conn.prepareStatement("select r.name,r.link,gr.factor,r.id,r.alias,r.category from dragon_restaurant r,dragon_group g,dragon_group_rest gr " +
+            PreparedStatement st = conn.prepareStatement("select r.name,r.link,gr.factor,r.id,r.alias,r.category,r.source from dragon_restaurant r,dragon_group g,dragon_group_rest gr " +
                     "where gr.res_id=r.id and gr.g_id=g.id and g.id=? and gr.factor>0");
             DbHelper.setParameters(st, gid);
             ResultSet rs = st.executeQuery();
 
             while (rs.next()) {
                 list.add(new Restaurant(rs.getString("name"), rs.getString("link"), rs.getLong("factor"), rs.getLong("id")
-                        ,rs.getString("alias"), rs.getString("category")));
+                        ,rs.getString("alias"), rs.getString("category"), rs.getString("source")));
             }
         } catch (Exception e) {
             logger.error("");
@@ -233,14 +234,24 @@ public class BizBean implements BizIntf {
         tt1 += t2-t1;
         logger.debug("getRestaurants takes: " + (t2 - t1));
 
-        Map<String, Stat> ss = stat(gid, 0, false);
-        long totalWeight = 0;
         List<Long> preIds = DbHelper.getFirstColumnList(null, "select distinct res_id,id from dragon_record where g_id=" + gid + " order by id desc limit ?",
                 Integer.parseInt(ConfigHelper.instance().getConfig("excludepre", "5")));
 
         Long t3 = System.currentTimeMillis();
         tt2 += t3-t2;
         logger.debug("stat takes: " + (t3 - t2));
+
+        return pickFrom(list, preIds, gid);
+    }
+
+    private Restaurant pickFrom(List<Restaurant> list, List<Long> preIds, Long gid){
+
+        if(CollectionUtils.isEmpty(list)){
+            return null;
+        }
+
+        Map<String, Stat> ss = stat(gid, 0, false);
+        long totalWeight = 0;
 
         for (Restaurant r : list) {
             if (preIds.contains(r.getId()) && list.size() > preIds.size()) {
@@ -255,15 +266,40 @@ public class BizBean implements BizIntf {
         for (Restaurant r : list) {
 
             if (preIds.contains(r.getId()) && list.size() > preIds.size()) {
-                logger.debug(r.getName() + " skipped.");
+                logger.debug(r.getAlias() + " skipped.");
                 continue;
             }
 
             if (pos <= selected && selected < pos + getWeight(ss, r)) {
                 Long t4 = System.currentTimeMillis();
-                tt3 += t4-t3;
-                logger.debug("pick up takes: " + (t4 - t3));
-                logger.info("Picked up: " + r.getName());
+                logger.info("Picked up: " + r.getAlias());
+
+                DsRetriever ds = null;
+                if("g".equals(r.getSource())){
+                    ds = new GoogleRetriever();
+                }
+
+                if(ds == null){
+                    return r;
+                }
+
+                try {
+                    Restaurant rr = ds.find(r.getName());
+                    if(rr == null){
+                        return r;
+                    }
+                    if(rr.getOpen() != null && rr.getOpen() == false){
+                        logger.info("Currently closed: " + r.getAlias());
+                        list.remove(r);
+                        return pickFrom(list, preIds, gid);
+                    } else {
+                        r.setLink(rr.getLink());
+                        r.setAlias(rr.getAlias());
+                    }
+                } catch (Exception e) {
+                    logger.error("", e);
+                }
+
                 return r;
             }
             pos += getWeight(ss, r);
@@ -271,11 +307,18 @@ public class BizBean implements BizIntf {
 
         logger.info("Not able to find a restaurant.");
         return null;
+
     }
 
     public Restaurant pickup(String reason, Long gid, boolean notify) throws Exception {
 
-        logger.info("Pick up lunch for: " + gid);
+        logger.info("Pick up restaurant for: " + gid);
+
+        Group group = gb.getGroup(new Pair<>("id", gid));
+        if(group == null || !group.getActive()) {
+            logger.info("group not active: " + gid);
+        }
+
         List<String> mails = getMails(gid);
 
         if (mails != null && mails.size() > 0) {
@@ -331,14 +374,15 @@ public class BizBean implements BizIntf {
 
         try {
             conn = DbHelper.getConn();
-            PreparedStatement st = conn.prepareStatement("select res.name,res.factor,v.vote,count(*) from dragon_restaurant res " +
+            PreparedStatement st = conn.prepareStatement("select res.name, res.alias,res.factor,v.vote,count(*) from dragon_restaurant res " +
                     "inner join dragon_record r on r.res_id=res.id left join dragon_vote v on v.rec_id=r.id " +
-                    "where r.g_id =? group by res.name,res.factor,v.vote order by count(*)");
+                    "where r.g_id =? group by res.name,res.alias,res.factor,v.vote order by count(*)");
             DbHelper.setParameters(st, gid);
             ResultSet rs = st.executeQuery();
 
             while (rs.next()) {
                 String name = rs.getString("name");
+                String alias = rs.getString("alias");
                 int factor = rs.getInt("factor");
                 int score = BASE;
                 Object vote = rs.getObject("vote");
@@ -348,6 +392,7 @@ public class BizBean implements BizIntf {
                 Stat s = null;
                 if (!ret.containsKey(name)) {
                     s = new Stat(name, factor, score);
+                    s.setAlias(alias);
                     ret.put(name, s);
                 } else {
                     s = ret.get(name);
@@ -729,7 +774,7 @@ public class BizBean implements BizIntf {
 
             if (rs.next()) {
                 ret = new Restaurant(rs.getString("name"), rs.getString("link"), rs.getLong("factor"), rs.getLong("id")
-                        , rs.getString("alias"), rs.getString("category"));
+                        , rs.getString("alias"), rs.getString("category"), rs.getString("source"));
             }
 
             return ret;
